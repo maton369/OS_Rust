@@ -6,10 +6,10 @@
 #![feature(offset_of)]
 
 use core::arch::asm; // アセンブリ言語の使用
+use core::cmp::min; // 最小値を取得するための関数
 use core::mem::{offset_of, size_of}; // メモリ操作用
 use core::panic::PanicInfo; // パニック時の情報取得
 use core::ptr::null_mut; // ヌルポインタ操作
-use core::slice; // 生ポインタからスライス生成
 
 // UEFI の void 型相当（任意のポインタ）
 type EfiVoid = u8;
@@ -137,21 +137,17 @@ pub fn hlt() {
 /// UEFI エントリポイント（UEFIアプリケーションの実行開始点）
 #[no_mangle]
 fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
-    // GOP を取得
-    let efi_graphics_output_protocol = locate_graphic_protocol(efi_system_table).unwrap();
+    // VRAM の初期化を行う。失敗した場合は panic。
+    let mut vram = init_vram(efi_system_table).expect("init_vram failed");
 
-    // VRAM 情報を取得
-    let vram_addr = efi_graphics_output_protocol.mode.frame_buffer_base;
-    let vram_byte_size = efi_graphics_output_protocol.mode.frame_buffer_size;
-
-    // VRAM を u32 単位のスライスに変換
-    let vram = unsafe {
-        slice::from_raw_parts_mut(vram_addr as *mut u32, vram_byte_size / size_of::<u32>())
-    };
-
-    // VRAM のすべてのピクセルを白 (0xFFFFFF) に塗りつぶす
-    for e in vram {
-        *e = 0xffffff;
+    // VRAM の全ピクセルを走査して、緑 (0x00ff00) に塗りつぶす
+    for y in 0..vram.height {
+        for x in 0..vram.width {
+            // ピクセル位置 (x, y) に対応する可変参照を取得し、存在する場合は色を変更
+            if let Some(pixel) = vram.pixel_at_mut(x, y) {
+                *pixel = 0x00ff00; // 緑 (RGB)
+            }
+        }
     }
 
     // 無限ループで終了をブロック
@@ -167,4 +163,86 @@ fn panic(_info: &PanicInfo) -> ! {
     loop {
         hlt();
     }
+}
+
+/// VRAMなどのビットマップ（画像バッファ）操作のためのトレイト
+trait Bitmap {
+    fn bytes_per_pixel(&self) -> i64;
+    fn pixels_per_line(&self) -> i64;
+    fn width(&self) -> i64;
+    fn height(&self) -> i64;
+    fn buf_mut(&mut self) -> *mut u8;
+
+    /// 任意の座標 (x, y) のピクセルへのポインタを取得（安全性は呼び出し元に依存）
+    ///
+    /// # Safety
+    /// 呼び出し側は `is_in_*_range` を使って `x`, `y` が有効であることを保証する必要があります。
+    unsafe fn unchecked_pixel_at_mut(&mut self, x: i64, y: i64) -> *mut u32 {
+        self.buf_mut()
+            .add(((y * self.pixels_per_line() + x) * self.bytes_per_pixel()) as usize)
+            as *mut u32
+    }
+
+    /// 安全なピクセル取得：範囲チェック込み
+    fn pixel_at_mut(&mut self, x: i64, y: i64) -> Option<&mut u32> {
+        if self.is_in_x_range(x) && self.is_in_y_range(y) {
+            // SAFETY: x, y の範囲は事前に検証されているため安全
+            unsafe { Some(&mut *(self.unchecked_pixel_at_mut(x, y))) }
+        } else {
+            None
+        }
+    }
+
+    /// X座標が有効範囲かをチェック
+    fn is_in_x_range(&self, px: i64) -> bool {
+        0 <= px && px < min(self.width(), self.pixels_per_line())
+    }
+
+    /// Y座標が有効範囲かをチェック
+    fn is_in_y_range(&self, py: i64) -> bool {
+        0 <= py && py < self.height()
+    }
+}
+
+/// VRAM 情報を保持する構造体（Uefi Graphics Output Protocol を元に構築）
+#[derive(Clone, Copy)]
+struct VramBufferInfo {
+    buf: *mut u8,
+    width: i64,
+    height: i64,
+    pixels_per_line: i64,
+}
+
+/// VramBufferInfo に対して Bitmap トレイトを実装
+impl Bitmap for VramBufferInfo {
+    fn bytes_per_pixel(&self) -> i64 {
+        4 // 常に 4 bytes/pixel (ARGB or BGRA などを想定)
+    }
+
+    fn pixels_per_line(&self) -> i64 {
+        self.pixels_per_line
+    }
+
+    fn width(&self) -> i64 {
+        self.width
+    }
+
+    fn height(&self) -> i64 {
+        self.height
+    }
+
+    fn buf_mut(&mut self) -> *mut u8 {
+        self.buf
+    }
+}
+
+/// Graphics Output Protocol を取得して VRAM 情報を構築
+fn init_vram(efi_system_table: &EfiSystemTable) -> Result<VramBufferInfo> {
+    let gp = locate_graphic_protocol(efi_system_table)?;
+    Ok(VramBufferInfo {
+        buf: gp.mode.frame_buffer_base as *mut u8,
+        width: gp.mode.info.horizontal_resolution as i64,
+        height: gp.mode.info.vertical_resolution as i64,
+        pixels_per_line: gp.mode.info.pixels_per_scan_line as i64,
+    })
 }
