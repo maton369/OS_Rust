@@ -140,23 +140,24 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     // VRAM の初期化を行う。失敗した場合は panic。
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
 
-    // VRAM の全ピクセルを走査して、緑 (0x00ff00) に塗りつぶす
-    for y in 0..vram.height {
-        for x in 0..vram.width {
-            // ピクセル位置 (x, y) に対応する可変参照を取得し、存在する場合は色を変更
-            if let Some(pixel) = vram.pixel_at_mut(x, y) {
-                *pixel = 0x00ff00; // 緑 (RGB)
-            }
-        }
-    }
+    let vw = vram.width;
+    let vh = vram.height;
 
-    for y in 0..vram.height / 2 {
-        for x in 0..vram.width / 2 {
-            // ピクセル位置 (x, y) に対応する可変参照を取得し、存在する場合は色を変更
-            if let Some(pixel) = vram.pixel_at_mut(x, y) {
-                *pixel = 0xff0000; // 赤 (RGB)
-            }
-        }
+    // 画面全体を黒で塗りつぶす（背景）
+    fill_rect(&mut vram, 0x000000, 0, 0, vw, vh).expect("fill_rect failed");
+
+    // 赤い正方形を表示（左上 32x32）
+    fill_rect(&mut vram, 0xff0000, 32, 32, 32, 32).expect("fill_rect failed");
+
+    // 緑の正方形を表示（左上 64x64, サイズ 64x64）
+    fill_rect(&mut vram, 0x00ff00, 64, 64, 64, 64).expect("fill_rect failed");
+
+    // 青の正方形を表示（左上 128x128, サイズ 128x128）
+    fill_rect(&mut vram, 0x0000ff, 128, 128, 128, 128).expect("fill_rect failed");
+
+    // グラデーションで対角線上に点を打つ（0x010101 * i で明度が上がるグレー）
+    for i in 0..256 {
+        let _ = draw_point(&mut vram, 0x010101 * i as u32, i, i);
     }
 
     // 無限ループで終了をブロック
@@ -254,4 +255,48 @@ fn init_vram(efi_system_table: &EfiSystemTable) -> Result<VramBufferInfo> {
         height: gp.mode.info.vertical_resolution as i64,
         pixels_per_line: gp.mode.info.pixels_per_scan_line as i64,
     })
+}
+
+/// 安全でないピクセル描画（座標チェックなし）
+///
+/// # Safety
+/// 呼び出し元で (x, y) が有効範囲内であることを保証しなければならない。
+unsafe fn unchecked_draw_point<T: Bitmap>(buf: &mut T, color: u32, x: i64, y: i64) {
+    *buf.unchecked_pixel_at_mut(x, y) = color;
+}
+
+/// 座標チェック付きの安全なピクセル描画
+fn draw_point<T: Bitmap>(buf: &mut T, color: u32, x: i64, y: i64) -> Result<()> {
+    // pixel_at_mut は範囲チェック済みのポインタ取得
+    *(buf.pixel_at_mut(x, y).ok_or("Out of Range")?) = color;
+    Ok(())
+}
+
+/// 指定した矩形範囲を塗りつぶす（座標チェックあり）
+///
+/// # 引数
+/// - `buf`: 描画対象のバッファ（Bitmap実装）
+/// - `color`: 描画色（ARGB）
+/// - `px`, `py`: 左上の座標
+/// - `w`, `h`: 幅と高さ
+fn fill_rect<T: Bitmap>(buf: &mut T, color: u32, px: i64, py: i64, w: i64, h: i64) -> Result<()> {
+    // 領域全体が有効範囲内かチェック（右下も含む）
+    if !buf.is_in_x_range(px)
+        || !buf.is_in_y_range(py)
+        || !buf.is_in_x_range(px + w - 1)
+        || !buf.is_in_y_range(py + h - 1)
+    {
+        return Err("Out of Range");
+    }
+
+    // 矩形内の各ピクセルを塗りつぶし（高速な unsafe を使用）
+    for y in py..py + h {
+        for x in px..px + w {
+            unsafe {
+                unchecked_draw_point(buf, color, x, y);
+            }
+        }
+    }
+
+    Ok(())
 }
