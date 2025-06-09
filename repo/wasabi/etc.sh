@@ -6,4 +6,9 @@
 
 # xxd -r -p img.hex > img.bin
 # ls -lah img.bin
-qemu-system-x86_64 -drive file=img.bin,format=raw
+# qemu-system-x86_64 -drive file=img.bin,format=raw
+# rustup target list
+# rustup target list | grep uefi
+# cargo build --target x86_64-unknown-uefi
+# rustup target add x86_64-unknown-uefi
+cargo build --target x86_64-unknown-uefi
