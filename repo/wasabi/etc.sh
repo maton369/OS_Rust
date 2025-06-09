@@ -15,4 +15,4 @@
 # file target/x86_64-unknown-uefi/debug/wasabi.efi
 # qemu-system-x86_64 --version
 # wget https://github.com/hikalium/wasabi/raw/main/third_party/ovmf/RELEASEX64_OVMF.fd
-qemu-system-x86_64 --version --help | grep gtk
+qemu-system-x86_64 -bios third_party/ovmf/RELEASEX64_OVMF.fd
