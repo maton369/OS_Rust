@@ -160,6 +160,33 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         let _ = draw_point(&mut vram, 0x010101 * i as u32, i, i);
     }
 
+    let grid_size: i64 = 32;
+    let rect_size: i64 = grid_size * 8; // 8x8 のグリッドを描く
+
+    // グリッド線の描画（水平・垂直線）
+    for i in (0..=rect_size).step_by(grid_size as usize) {
+        // 水平線（赤）
+        let _ = draw_line(&mut vram, 0xff0000, 0, i, rect_size, i);
+        // 垂直線（赤）
+        let _ = draw_line(&mut vram, 0xff0000, i, 0, i, rect_size);
+    }
+
+    // グリッドの中心点を計算
+    let cx = rect_size / 2;
+    let cy = rect_size / 2;
+
+    // 中心点から四隅に向かう放射線を描く
+    for i in (0..=rect_size).step_by(grid_size as usize) {
+        // 左方向：中心 → (0, i)（黄）
+        let _ = draw_line(&mut vram, 0xffff00, cx, cy, 0, i);
+        // 上方向：中心 → (i, 0)（シアン）
+        let _ = draw_line(&mut vram, 0x00ffff, cx, cy, i, 0);
+        // 右方向：中心 → (rect_size, i)（マゼンタ）
+        let _ = draw_line(&mut vram, 0xff00ff, cx, cy, rect_size, i);
+        // 下方向：中心 → (i, rect_size)（白）
+        let _ = draw_line(&mut vram, 0xffffff, cx, cy, i, rect_size);
+    }
+
     // 無限ループで終了をブロック
     loop {
         hlt(); // CPU を停止
@@ -295,6 +322,64 @@ fn fill_rect<T: Bitmap>(buf: &mut T, color: u32, px: i64, py: i64, w: i64, h: i6
             unsafe {
                 unchecked_draw_point(buf, color, x, y);
             }
+        }
+    }
+
+    Ok(())
+}
+
+/// 傾きを考慮して補間位置を計算する関数
+/// da = 主軸方向の距離、db = 従軸方向の距離、ia = 主軸上の現在位置
+fn calc_slope_point(da: i64, db: i64, ia: i64) -> Option<i64> {
+    if da < db {
+        // 主軸距離より従軸の方が長い場合は処理しない（分岐先で反転処理するため）
+        None
+    } else if da == 0 {
+        // 主軸距離がゼロなら原点固定
+        Some(0)
+    } else if (0..=da).contains(&ia) {
+        // 中点付き整数補間: y = (2 * db * x + da) / (2 * da)
+        Some((2 * db * ia + da) / (2 * da))
+    } else {
+        None
+    }
+}
+
+/// 傾きを考慮して直線を描画する関数（高性能・中精度）
+fn draw_line<T: Bitmap>(buf: &mut T, color: u32, x0: i64, y0: i64, x1: i64, y1: i64) -> Result<()> {
+    // 差分と符号
+    let dx = (x1 - x0).abs();
+    let dy = (y1 - y0).abs();
+    let sx = (x1 - x0).signum();
+    let sy = (y1 - y0).signum();
+
+    let mut x = x0;
+    let mut y = y0;
+
+    // 誤差項
+    let mut err = if dx > dy { dx } else { -dy } / 2;
+    let mut e2;
+
+    loop {
+        // 点を描画（範囲外は無視）
+        if let Some(pixel) = buf.pixel_at_mut(x, y) {
+            *pixel = color;
+        }
+
+        if x == x1 && y == y1 {
+            break;
+        }
+
+        e2 = err;
+
+        if e2 > -dx {
+            err -= dy;
+            x += sx;
+        }
+
+        if e2 < dy {
+            err += dx;
+            y += sy;
         }
     }
 
