@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  rust-dev:
+    build: .
+    image: rust-env-1-81
+    container_name: rust-dev
+    volumes:
+      - ./repo:/app
+    working_dir: /app
+    platform: linux/amd64
+    tty: true

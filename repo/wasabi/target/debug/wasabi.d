@@ -1,1 +1,1 @@
-/Users/maton/OS_Rust/repo/wasabi/target/debug/wasabi: /Users/maton/OS_Rust/repo/wasabi/src/main.rs
+/app/wasabi/target/debug/wasabi: /app/wasabi/src/main.rs
