@@ -187,7 +187,7 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         let _ = draw_line(&mut vram, 0xffffff, cx, cy, i, rect_size);
     }
 
-    for (i, c) in "AAAAAA".chars().enumerate() {
+    for (i, c) in "ABCDEF".chars().enumerate() {
         draw_font_fg(&mut vram, i as i64 * 16 + 256, i as i64 * 16, 0xffffff, c);
     }
 
@@ -390,36 +390,46 @@ fn draw_line<T: Bitmap>(buf: &mut T, color: u32, x0: i64, y0: i64, x1: i64, y1: 
     Ok(())
 }
 
-fn draw_font_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, c: char) {
-    // 対応するのは 'A' のみ
-    if c != 'A' {
-        return;
+fn lookup_font(c: char) -> Option<[[char; 8]; 16]> {
+    const FONT_SOURCE: &str = include_str!("./font.txt");
+
+    if let Ok(c) = u8::try_from(c) {
+        let mut lines = FONT_SOURCE.lines().peekable();
+
+        while let Some(line) = lines.next() {
+            if let Some(hex) = line.strip_prefix("0x") {
+                if let Ok(idx) = u8::from_str_radix(hex, 16) {
+                    if idx != c {
+                        // スキップ：次の 16 行を読み飛ばす
+                        for _ in 0..16 {
+                            lines.next();
+                        }
+                        continue;
+                    }
+
+                    // 対象のフォント行だけを読み取る
+                    let mut font = [[' '; 8]; 16];
+                    for (y, font_line) in lines.by_ref().take(16).enumerate() {
+                        for (x, ch) in font_line.chars().take(8).enumerate() {
+                            font[y][x] = ch;
+                        }
+                    }
+                    return Some(font);
+                }
+            }
+        }
     }
 
-    // 'A' のドットフォント（16x8）
-    let font_a = "
- ........
- ...**...
- ...**...
- ...**...
- ...**...
- ..*..*..
- ..*..*..
- ..*..*..
- ..*..*..
- .******.
- .*....*.
- .*....*.
- .*....*.
- ***..***
- ........
- ........
- ";
+    None
+}
 
-    for (dy, row) in font_a.trim().lines().enumerate() {
-        for (dx, pixel) in row.chars().enumerate() {
-            if pixel == '*' {
-                let _ = draw_point(buf, color, x + dx as i64, y + dy as i64);
+fn draw_font_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, c: char) {
+    if let Some(font) = lookup_font(c) {
+        for (dy, row) in font.iter().enumerate() {
+            for (dx, pixel) in row.iter().enumerate() {
+                if *pixel == '*' {
+                    let _ = draw_point(buf, color, x + dx as i64, y + dy as i64);
+                }
             }
         }
     }
