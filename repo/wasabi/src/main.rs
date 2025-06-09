@@ -187,6 +187,36 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         let _ = draw_line(&mut vram, 0xffffff, cx, cy, i, rect_size);
     }
 
+    let font_a = "
+ ........
+ ...**...
+ ...**...
+ ...**...
+ ...**...
+ ..*..*..
+ ..*..*..
+ ..*..*..
+ ..*..*..
+ .******.
+ .*....*.
+ .*....*.
+ .*....*.
+ ***..***
+ ........
+ ........
+";
+
+    // 各行・各文字を走査して白いピクセルを描画
+    for (y, row) in font_a.trim().lines().enumerate() {
+        for (x, pixel) in row.chars().enumerate() {
+            let color = match pixel {
+                '*' => 0xffffff,
+                _ => continue, // ドットや空白はスキップ
+            };
+            let _ = draw_point(&mut vram, color, x as i64, y as i64);
+        }
+    }
+
     // 無限ループで終了をブロック
     loop {
         hlt(); // CPU を停止
