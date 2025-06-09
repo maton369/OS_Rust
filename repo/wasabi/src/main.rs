@@ -187,34 +187,8 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         let _ = draw_line(&mut vram, 0xffffff, cx, cy, i, rect_size);
     }
 
-    let font_a = "
- ........
- ...**...
- ...**...
- ...**...
- ...**...
- ..*..*..
- ..*..*..
- ..*..*..
- ..*..*..
- .******.
- .*....*.
- .*....*.
- .*....*.
- ***..***
- ........
- ........
-";
-
-    // 各行・各文字を走査して白いピクセルを描画
-    for (y, row) in font_a.trim().lines().enumerate() {
-        for (x, pixel) in row.chars().enumerate() {
-            let color = match pixel {
-                '*' => 0xffffff,
-                _ => continue, // ドットや空白はスキップ
-            };
-            let _ = draw_point(&mut vram, color, x as i64, y as i64);
-        }
+    for (i, c) in "AAAAAA".chars().enumerate() {
+        draw_font_fg(&mut vram, i as i64 * 16 + 256, i as i64 * 16, 0xffffff, c);
     }
 
     // 無限ループで終了をブロック
@@ -414,4 +388,39 @@ fn draw_line<T: Bitmap>(buf: &mut T, color: u32, x0: i64, y0: i64, x1: i64, y1: 
     }
 
     Ok(())
+}
+
+fn draw_font_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, c: char) {
+    // 対応するのは 'A' のみ
+    if c != 'A' {
+        return;
+    }
+
+    // 'A' のドットフォント（16x8）
+    let font_a = "
+ ........
+ ...**...
+ ...**...
+ ...**...
+ ...**...
+ ..*..*..
+ ..*..*..
+ ..*..*..
+ ..*..*..
+ .******.
+ .*....*.
+ .*....*.
+ .*....*.
+ ***..***
+ ........
+ ........
+ ";
+
+    for (dy, row) in font_a.trim().lines().enumerate() {
+        for (dx, pixel) in row.chars().enumerate() {
+            if pixel == '*' {
+                let _ = draw_point(buf, color, x + dx as i64, y + dy as i64);
+            }
+        }
+    }
 }
