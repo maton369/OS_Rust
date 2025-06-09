@@ -150,6 +150,15 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         }
     }
 
+    for y in 0..vram.height / 2 {
+        for x in 0..vram.width / 2 {
+            // ピクセル位置 (x, y) に対応する可変参照を取得し、存在する場合は色を変更
+            if let Some(pixel) = vram.pixel_at_mut(x, y) {
+                *pixel = 0xff0000; // 赤 (RGB)
+            }
+        }
+    }
+
     // 無限ループで終了をブロック
     loop {
         hlt(); // CPU を停止
