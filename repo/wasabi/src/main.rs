@@ -5,6 +5,7 @@
 // Rust の未安定機能 offset_of を使用するために必要
 #![feature(offset_of)]
 
+use core::arch::asm; // アセンブリ言語の使用
 use core::mem::{offset_of, size_of}; // メモリ操作用
 use core::panic::PanicInfo; // パニック時の情報取得
 use core::ptr::null_mut; // ヌルポインタ操作
@@ -126,6 +127,13 @@ fn locate_graphic_protocol<'a>(
     Ok(unsafe { &*graphic_output_protocol })
 }
 
+pub fn hlt() {
+    // CPU を停止するためのアセンブリ命令
+    unsafe {
+        asm!("hlt");
+    }
+}
+
 /// UEFI エントリポイント（UEFIアプリケーションの実行開始点）
 #[no_mangle]
 fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
@@ -147,12 +155,16 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     }
 
     // 無限ループで終了をブロック
-    loop {}
+    loop {
+        hlt(); // CPU を停止
+    }
 }
 
 /// パニックハンドラ（panic 時の処理）
 /// no_std 環境ではこれが必須
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    loop {}
+    loop {
+        hlt();
+    }
 }
