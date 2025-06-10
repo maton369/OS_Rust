@@ -7,9 +7,12 @@
 
 use core::arch::asm; // アセンブリ言語の使用
 use core::cmp::min; // 最小値を取得するための関数
+use core::fmt; // フォーマット関連のトレイト
+use core::fmt::Write; // 書き込みトレイト
 use core::mem::{offset_of, size_of}; // メモリ操作用
 use core::panic::PanicInfo; // パニック時の情報取得
 use core::ptr::null_mut; // ヌルポインタ操作
+use core::writeln; // 64ビット整数の書き込み
 
 // UEFI の void 型相当（任意のポインタ）
 type EfiVoid = u8;
@@ -192,6 +195,11 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     }
 
     draw_str_fg(&mut vram, 256, 256, 0xffffff, "Hello, World!");
+
+    let mut w = VramTextWriter::new(&mut vram);
+    for i in 0..4 {
+        writeln!(w, "i={i}").unwrap();
+    }
 
     // 無限ループで終了をブロック
     loop {
@@ -440,5 +448,40 @@ fn draw_font_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, c: char) {
 fn draw_str_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, s: &str) {
     for (i, c) in s.chars().enumerate() {
         draw_font_fg(buf, x + i as i64 * 8, y, color, c);
+    }
+}
+
+/// VRAM に文字列を描画するためのラッパー
+struct VramTextWriter<'a> {
+    vram: &'a mut VramBufferInfo,
+    cursor_x: i64, // カーソルのX座標
+    cursor_y: i64, // カーソルのY座標
+}
+
+impl<'a> VramTextWriter<'a> {
+    /// 新しい VramTextWriter を作成
+    fn new(vram: &'a mut VramBufferInfo) -> Self {
+        Self {
+            vram,
+            cursor_x: 0,
+            cursor_y: 0,
+        }
+    }
+}
+
+impl fmt::Write for VramTextWriter<'_> {
+    /// `core::fmt::Write` を実装することで `write!` マクロなどが使用可能に
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        for c in s.chars() {
+            if c == '\n' {
+                // 改行文字の場合はカーソルを次の行に移動
+                self.cursor_x = 0;
+                self.cursor_y += 16; // 1行分の高さ（16px）を加算
+                continue;
+            }
+            draw_font_fg(self.vram, self.cursor_x, self.cursor_y, 0xffffff, c);
+            self.cursor_x += 8; // 1文字分の幅（8px）を加算
+        }
+        Ok(())
     }
 }
