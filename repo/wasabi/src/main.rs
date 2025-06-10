@@ -249,52 +249,7 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     // 画面全体を黒で塗りつぶす（背景）
     fill_rect(&mut vram, 0x000000, 0, 0, vw, vh).expect("fill_rect failed");
 
-    // 赤い正方形を表示（左上 32x32）
-    fill_rect(&mut vram, 0xff0000, 32, 32, 32, 32).expect("fill_rect failed");
-
-    // 緑の正方形を表示（左上 64x64, サイズ 64x64）
-    fill_rect(&mut vram, 0x00ff00, 64, 64, 64, 64).expect("fill_rect failed");
-
-    // 青の正方形を表示（左上 128x128, サイズ 128x128）
-    fill_rect(&mut vram, 0x0000ff, 128, 128, 128, 128).expect("fill_rect failed");
-
-    // グラデーションで対角線上に点を打つ（0x010101 * i で明度が上がるグレー）
-    for i in 0..256 {
-        let _ = draw_point(&mut vram, 0x010101 * i as u32, i, i);
-    }
-
-    let grid_size: i64 = 32;
-    let rect_size: i64 = grid_size * 8; // 8x8 のグリッドを描く
-
-    // グリッド線の描画（水平・垂直線）
-    for i in (0..=rect_size).step_by(grid_size as usize) {
-        // 水平線（赤）
-        let _ = draw_line(&mut vram, 0xff0000, 0, i, rect_size, i);
-        // 垂直線（赤）
-        let _ = draw_line(&mut vram, 0xff0000, i, 0, i, rect_size);
-    }
-
-    // グリッドの中心点を計算
-    let cx = rect_size / 2;
-    let cy = rect_size / 2;
-
-    // 中心点から四隅に向かう放射線を描く
-    for i in (0..=rect_size).step_by(grid_size as usize) {
-        // 左方向：中心 → (0, i)（黄）
-        let _ = draw_line(&mut vram, 0xffff00, cx, cy, 0, i);
-        // 上方向：中心 → (i, 0)（シアン）
-        let _ = draw_line(&mut vram, 0x00ffff, cx, cy, i, 0);
-        // 右方向：中心 → (rect_size, i)（マゼンタ）
-        let _ = draw_line(&mut vram, 0xff00ff, cx, cy, rect_size, i);
-        // 下方向：中心 → (i, rect_size)（白）
-        let _ = draw_line(&mut vram, 0xffffff, cx, cy, i, rect_size);
-    }
-
-    for (i, c) in "ABCDEF".chars().enumerate() {
-        draw_font_fg(&mut vram, i as i64 * 16 + 256, i as i64 * 16, 0xffffff, c);
-    }
-
-    draw_str_fg(&mut vram, 256, 256, 0xffffff, "Hello, World!");
+    draw_test_pattern(&mut vram);
 
     let mut w = VramTextWriter::new(&mut vram);
     for i in 0..4 {
@@ -331,6 +286,37 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     loop {
         hlt(); // CPU を停止
     }
+}
+
+fn draw_test_pattern<T: Bitmap>(buf: &mut T) {
+    let w = 128;
+    let h = 64;
+    let left = buf.width() - w - 1;
+
+    // カラーパターン（黒、赤、緑、青）
+    let colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff];
+
+    // 各色の矩形とその反転色のペアを縦に並べて描画
+    for (i, &color) in colors.iter().enumerate() {
+        let y = i as i64 * h;
+        fill_rect(buf, color, left, y, h, h).expect("fill_rect failed");
+        fill_rect(buf, !color, left + h, y, h, h).expect("fill_rect failed");
+    }
+
+    // 左上・右上・左下・右下の点を定義
+    let points = [(0, 0), (0, w), (w, 0), (w, w)];
+
+    // すべての点の組み合わせで白線を引く
+    for &(x0, y0) in &points {
+        for &(x1, y1) in &points {
+            let _ = draw_line(buf, 0xffffff, left + x0, y0, left + x1, y1);
+        }
+    }
+
+    // 文字列を描画（緑色）
+    let text_y = h * colors.len() as i64;
+    draw_str_fg(buf, left, text_y, 0x00ff00, "0123456789");
+    draw_str_fg(buf, left, text_y + 16, 0x00ff00, "ABCDEF");
 }
 
 /// パニックハンドラ（panic 時の処理）
