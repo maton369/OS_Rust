@@ -10,22 +10,20 @@ use core::fmt::Write;
 use core::mem::{offset_of, size_of};
 use core::panic::PanicInfo;
 use core::writeln;
-use print::*;
+use wasabi::print::*;
 
 use wasabi::{
     allocator, // allocator モジュール全体をインポート。これで `allocator::*` の代わりに `wasabi::allocator::*` を使う
-    executor::block_on,
+    executor::{self, Executor, Task},
     graphics::{self, draw_test_pattern, fill_rect},
     init::{self, init_basic_runtime, init_paging},
-    print::{self, hexdump},
-    qemu::{self, exit_qemu, QemuExitCode},
     serial::{self, SerialPort},
     //test_runner::{self, Testable},
     uefi::{
         self, init_vram, locate_loaded_image_protocol, EfiHandle, EfiMemoryDescriptor,
         EfiMemoryType, EfiSystemTable, VramTextWriter,
     },
-    x86::{self, flush_tlb, hlt, init_exceptions, read_cr3, trigger_debug_interrupt, PageAttr},
+    x86::{self, flush_tlb, init_exceptions, read_cr3, trigger_debug_interrupt, PageAttr},
 };
 
 use wasabi::{error, info, println, warn};
@@ -45,17 +43,12 @@ pub extern "C" fn efi_main(_image_handle: usize, _system_table: usize) -> ! {
 #[no_mangle]
 pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) -> ! {
     println!("Booting WasabiOS...");
-    println!("image_handle: {:#018X}", image_handle);
-    println!("efi_system_table: {:#p}", efi_system_table);
 
     let loaded_image_protocol = locate_loaded_image_protocol(image_handle, efi_system_table)
         .expect("Failed to get LoadedImageProtocol");
-    println!("image_base: {:#018X}", loaded_image_protocol.image_base);
-    println!("image_size: {:#018X}", loaded_image_protocol.image_size);
 
     info!("info");
     warn!("warn");
-    error!("error");
 
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
 
@@ -69,6 +62,7 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     let writer_static: &'static mut (dyn Write + Send) =
         unsafe { core::mem::transmute(writer_ref) };
     wasabi::print::set_writer(writer_static);
+    // wasabi::print::set_serial_output(true); // Removed: function does not exist
     let mut memory_map = init_basic_runtime(image_handle, efi_system_table);
 
     let mut total_pages = 0;
@@ -85,10 +79,9 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
 
     writeln!(writer, "Hello, Non-UEFI world!").unwrap();
     let cr3 = wasabi::x86::read_cr3();
-    println!("cr3 = {cr3:#p}");
     {
-        let mut serial = SerialPort::default();
-        wasabi::print::hexdump_to(unsafe { &*cr3 }, &mut serial);
+        // let mut serial = SerialPort::default();
+        // wasabi::print::hexdump_to(unsafe { &*cr3 }, &mut serial);
     }
 
     let t = Some(unsafe { &*cr3 });
@@ -98,7 +91,7 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
 
     let (_gdt, _idt) = init_exceptions();
     info!("Exception initialized!");
-    trigger_debug_interrupt();
+    // trigger_debug_interrupt();
     info!("Execution continued.");
     init_paging(&memory_map);
     info!("Now we are using our own page tables!");
@@ -111,15 +104,27 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     }
     flush_tlb();
 
-    let result = block_on(async {
+    let task = Task::new(async {
         info!("Hello from the async world!");
         Ok(())
     });
-    info!("block_on completed! result = {result:?}");
 
-    loop {
-        hlt();
-    }
+    let task1 = Task::new(async {
+        for i in 100..=103 {
+            info!("{i}");
+        }
+        Ok(())
+    });
+    let task2 = Task::new(async {
+        for i in 200..=203 {
+            info!("{i}");
+        }
+        Ok(())
+    });
+    let mut executor = Executor::new();
+    executor.enqueue(task1);
+    executor.enqueue(task2);
+    Executor::run(executor)
 }
 
 #[panic_handler]
