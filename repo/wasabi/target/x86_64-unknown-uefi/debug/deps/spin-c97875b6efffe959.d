@@ -1,0 +1,12 @@
+/Users/maton/OS_Rust/repo/wasabi/target/x86_64-unknown-uefi/debug/deps/libspin-c97875b6efffe959.rmeta: /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/lib.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/barrier.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/lazy.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/mutex.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/mutex/spin.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/once.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/relax.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/rwlock.rs
+
+/Users/maton/OS_Rust/repo/wasabi/target/x86_64-unknown-uefi/debug/deps/spin-c97875b6efffe959.d: /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/lib.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/barrier.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/lazy.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/mutex.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/mutex/spin.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/once.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/relax.rs /Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/rwlock.rs
+
+/Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/lib.rs:
+/Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/barrier.rs:
+/Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/lazy.rs:
+/Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/mutex.rs:
+/Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/mutex/spin.rs:
+/Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/once.rs:
+/Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/relax.rs:
+/Users/maton/.cargo/registry/src/index.crates.io-6f17d22bba15001f/spin-0.10.0/src/rwlock.rs:

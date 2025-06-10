@@ -631,6 +631,8 @@ impl<'a> VramTextWriter<'a> {
     }
 }
 
+unsafe impl<'a> Send for VramTextWriter<'a> {}
+
 impl fmt::Write for VramTextWriter<'_> {
     /// `core::fmt::Write` トレイトを実装することで、
     /// `write!` や `writeln!` マクロを使って画面に文字列を描画できるようになる。

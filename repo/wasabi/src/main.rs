@@ -14,11 +14,12 @@ use print::*;
 
 use wasabi::{
     allocator, // allocator モジュール全体をインポート。これで `allocator::*` の代わりに `wasabi::allocator::*` を使う
+    executor::block_on,
     graphics::{self, draw_test_pattern, fill_rect},
     init::{self, init_basic_runtime, init_paging},
     print::{self, hexdump},
     qemu::{self, exit_qemu, QemuExitCode},
-    serial::{self},
+    serial::{self, SerialPort},
     //test_runner::{self, Testable},
     uefi::{
         self, init_vram, locate_loaded_image_protocol, EfiHandle, EfiMemoryDescriptor,
@@ -55,7 +56,6 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     info!("info");
     warn!("warn");
     error!("error");
-    hexdump(efi_system_table);
 
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
 
@@ -65,6 +65,10 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     draw_test_pattern(&mut vram);
 
     let mut writer = VramTextWriter::new(&mut vram);
+    let writer_ref: &mut (dyn Write + Send) = &mut writer;
+    let writer_static: &'static mut (dyn Write + Send) =
+        unsafe { core::mem::transmute(writer_ref) };
+    wasabi::print::set_writer(writer_static);
     let mut memory_map = init_basic_runtime(image_handle, efi_system_table);
 
     let mut total_pages = 0;
@@ -82,16 +86,15 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     writeln!(writer, "Hello, Non-UEFI world!").unwrap();
     let cr3 = wasabi::x86::read_cr3();
     println!("cr3 = {cr3:#p}");
-    hexdump(unsafe { &*cr3 });
+    {
+        let mut serial = SerialPort::default();
+        wasabi::print::hexdump_to(unsafe { &*cr3 }, &mut serial);
+    }
 
     let t = Some(unsafe { &*cr3 });
-    println!("{t:?}");
     let t = t.and_then(|t| t.next_level(0));
-    println!("{t:?}");
     let t = t.and_then(|t| t.next_level(0));
-    println!("{t:?}");
     let t = t.and_then(|t| t.next_level(0));
-    println!("{t:?}");
 
     let (_gdt, _idt) = init_exceptions();
     info!("Exception initialized!");
@@ -107,6 +110,12 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
             .expect("Failed to unmap page 0");
     }
     flush_tlb();
+
+    let result = block_on(async {
+        info!("Hello from the async world!");
+        Ok(())
+    });
+    info!("block_on completed! result = {result:?}");
 
     loop {
         hlt();
