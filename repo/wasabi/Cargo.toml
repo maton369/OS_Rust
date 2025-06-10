@@ -1,6 +1,18 @@
 [package]
+edition = "2021"
 name = "wasabi"
 version = "0.1.0"
-edition = "2021"
 
 [dependencies]
+
+[[bin]]
+name = "wasabi"
+test = false
+
+[features]
+default = []
+test = []
+test-mode = []
+
+[lib]
+crate-type = ["rlib"] # no_std 用ライブラリとしてコンパイル

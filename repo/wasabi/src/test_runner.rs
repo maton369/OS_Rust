@@ -1,23 +1,45 @@
-use crate::qemu::{exit_qemu, QemuExitCode};
+use crate::qemu::*;
+use crate::serial::SerialPort;
+use core::any::type_name;
+use core::fmt::Write;
 use core::panic::PanicInfo;
 
-/// テストランナー（`#[test_runner]` で指定）
-///
-/// `#![no_std]` 環境では標準のテストランナーが使えないため、独自に定義する必要がある。
-/// テスト関数は `tests: &[&dyn FnOnce()]` として渡されるが、ここでは実行せず即終了。
-///
-/// CI 判定用途などでは、この関数で明示的に QEMU を終了させることで、
-/// テスト結果をホスト側に返せる。
-pub fn test_runner(_tests: &[&dyn FnOnce()]) -> ! {
-    // テスト成功 → QEMU を正常終了コードで終了させる
-    exit_qemu(QemuExitCode::Success)
+/// 各テスト関数をラップしてログ出力できるようにする trait
+pub trait Testable {
+    fn run(&self, writer: &mut SerialPort);
 }
 
-/// パニックハンドラ（`no_std` 環境で必須）
-///
-/// テスト中に panic が発生した場合は、QEMU をエラーコードで終了させる。
+impl<T> Testable for T
+where
+    T: Fn(),
+{
+    fn run(&self, writer: &mut SerialPort) {
+        writeln!(writer, "[RUNNING] >>> {}", type_name::<T>()).unwrap();
+        self();
+        writeln!(writer, "[PASS   ] <<< {}", type_name::<T>()).unwrap();
+    }
+}
+
+/// テストランナー本体（cargo testのように使われる）
+pub fn test_runner(tests: &[&dyn Testable]) -> ! {
+    let mut sw = SerialPort::new_for_com1();
+    sw.init();
+    writeln!(sw, "Running {} tests...", tests.len()).unwrap();
+
+    for test in tests {
+        test.run(&mut sw);
+    }
+
+    writeln!(sw, "All tests passed.").unwrap();
+
+    exit_qemu(QemuExitCode::Success); // <- これで `!` を返す
+}
+
+/// panic発生時の処理（テスト失敗と見なして終了）
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    // テスト失敗 → QEMU を異常終了コードで終了させる
+fn panic(info: &PanicInfo) -> ! {
+    let mut sw = SerialPort::new_for_com1();
+    sw.init();
+    writeln!(sw, "PANIC during test: {info:?}").unwrap();
     exit_qemu(QemuExitCode::Fail);
 }

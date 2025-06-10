@@ -3,21 +3,28 @@
 #![test_runner(crate::test_runner::test_runner)] // 使用するテストランナーを指定
 #![reexport_test_harness_main = "run_unit_tests"] // `cargo test` 用の main 関数を再定義
 #![cfg_attr(not(test), no_std)] // テストモード以外では標準ライブラリを無効化
+#![no_main] // 通常の main 関数を使用しない（UEFI アプリケーションのエントリポイントを定義するため）
 
 // モジュール定義
+pub mod allocator; // メモリアロケータ（カスタムアロケータの実装）
 pub mod graphics; // 描画処理（文字列描画やピクセル操作）
+pub mod init; // 初期化処理（UEFI アプリケーションの初期化）
+pub mod print;
 pub mod qemu; // QEMU デバッグ操作や仮想デバイスとのやり取り
 pub mod result; // 独自の Result 型など（文字列エラー）
+pub mod serial; // シリアルポート通信（デバッグ用）
 pub mod uefi; // UEFI 関連構造体・プロトコル・API呼び出し
-pub mod x86; // x86向けの低レベル操作（hlt命令など）
+pub mod x86; // x86向けの低レベル操作（hlt命令など） // メモリアロケータ（カスタムアロケータの実装） // シリアルポート通信（デバッグ用） // 初期化処理（UEFI アプリケーションの初期化）
 
 // テスト用ランナー定義
 #[cfg(test)]
 pub mod test_runner;
+pub mod tests; // ユニットテスト（mallocのアライメントや解放のテスト）
 
 // テストモード時のエントリポイント
 #[cfg(test)]
 #[no_mangle]
-pub fn efi_main() {
+fn efi_main(image_handle: uefi::EfiHandle, efi_system_table: &uefi::EfiSystemTable) {
+    init::init_basic_runtime(image_handle, efi_system_table);
     run_unit_tests()
 }

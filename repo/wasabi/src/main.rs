@@ -1,87 +1,86 @@
-// no_std により標準ライブラリの使用を禁止（カーネルやUEFI環境で必要）
 #![no_std]
-// エントリポイントを独自に定義する（通常の main 関数を使用しない）
 #![no_main]
-// Rust の未安定機能 offset_of を使用するために必要
 #![feature(offset_of)]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 
+mod allocator;
 mod graphics;
+mod init;
+mod print;
+mod qemu;
 mod result;
+mod serial;
+mod test_runner;
+#[cfg(test)]
+mod tests;
 mod uefi;
 mod x86;
 
-use core::arch::asm; // アセンブリ言語の使用
-use core::fmt::Write; // 書き込みトレイト
-use core::mem::{offset_of, size_of}; // メモリ操作用
-use core::panic::PanicInfo; // パニック時の情報取得
-use core::writeln; // 64ビット整数の書き込み
-use graphics::*;
-use uefi::*;
-use wasabi::qemu::*;
+use core::arch::asm;
+use core::fmt::Write;
+use core::mem::{offset_of, size_of};
+use core::panic::PanicInfo;
+use print::*;
 
+use graphics::*;
+use init::*;
+use qemu::*;
+use serial::*;
+use test_runner::*;
+#[cfg(test)]
+use tests::*;
+use uefi::*;
+
+/// CPU を停止する命令
 pub fn hlt() {
-    // CPU を停止するためのアセンブリ命令
     unsafe {
         asm!("hlt");
     }
 }
 
-/// UEFI エントリポイント（UEFIアプリケーションの実行開始点）
+/// テストモード用の UEFI エントリポイント
+#[cfg(feature = "test")]
 #[no_mangle]
-fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
-    // VRAM の初期化を行う。失敗した場合は panic。
+pub extern "C" fn efi_main(_image_handle: usize, _system_table: usize) -> ! {
+    crate::tests::test_main();
+    loop {
+        hlt();
+    }
+}
+
+/// 通常時の UEFI エントリポイント
+#[cfg(not(feature = "test"))]
+#[no_mangle]
+pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) -> ! {
+    println!("Booting WasabiOS...");
+    println!("image_handle: {:#018X}", image_handle);
+    println!("efi_system_table: {:#p}", efi_system_table);
+
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
 
-    let vw = vram.width;
-    let vh = vram.height;
-
-    // 画面全体を黒で塗りつぶす（背景）
+    let (vw, vh) = (vram.width, vram.height);
     fill_rect(&mut vram, 0x000000, 0, 0, vw, vh).expect("fill_rect failed");
 
     draw_test_pattern(&mut vram);
 
-    let mut w = VramTextWriter::new(&mut vram);
-    for i in 0..4 {
-        writeln!(w, "i={i}").unwrap();
-    }
+    let mut writer = VramTextWriter::new(&mut vram);
+    let mut memory_map = init_basic_runtime(image_handle, efi_system_table);
 
-    let mut memory_map = MemoryMapHolder::new();
-
-    // メモリマップ取得
-    let status: EfiStatus = efi_system_table
-        .boot_services
-        .get_memory_map(&mut memory_map);
-
-    // 結果を表示
-    writeln!(w, "get_memory_map status: {:?}", status).unwrap();
-
-    let mut total_memory_pages = 0;
-    for e in memory_map.iter() {
-        if e.memory_type != EfiMemoryType::CONVENTIONAL_MEMORY {
+    let mut total_pages = 0;
+    for desc in memory_map.iter() {
+        if desc.memory_type != EfiMemoryType::CONVENTIONAL_MEMORY {
             continue;
         }
-        total_memory_pages += e.number_of_pages;
-        writeln!(w, "{e:?}").unwrap();
+        total_pages += desc.number_of_pages;
+        writeln!(writer, "{desc:?}").unwrap();
     }
 
-    let total_memory_size_mib = total_memory_pages * 4096 / 1024 / 1024;
-    writeln!(
-        w,
-        "Total: {total_memory_pages} pages = {total_memory_size_mib} MiB"
-    )
-    .unwrap();
+    let total_mib = total_pages * 4096 / 1024 / 1024;
+    writeln!(writer, "Total: {total_pages} pages = {total_mib} MiB").unwrap();
 
-    exit_boot_services(image_handle, efi_system_table, &mut memory_map);
-
-    // 無限ループで終了をブロック
     loop {
-        hlt(); // CPU を停止
+        hlt();
     }
-}
-
-/// パニックハンドラ（panic 時の処理）
-/// no_std 環境ではこれが必須
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    exit_qemu(QemuExitCode::Fail)
 }

@@ -1,5 +1,7 @@
+use crate::serial::SerialPort;
 use crate::x86::hlt;
 use crate::x86::write_io_port_u8;
+use core::fmt::Write;
 
 /// QEMU の終了コード（isa-debug-exit デバイスに渡す）
 ///
@@ -23,10 +25,12 @@ pub enum QemuExitCode {
 /// # 戻り値
 /// - 戻らない関数（`!`）：終了後は無限ループでCPU停止
 pub fn exit_qemu(exit_code: QemuExitCode) -> ! {
-    // QEMU のデバイスへ I/O 書き込み（終了コードを送信）
+    let mut port = SerialPort::new_for_com1();
+    port.init();
+    writeln!(port, "[EXIT] Sending exit code: {:?}", exit_code).ok();
+
     write_io_port_u8(0xf4, exit_code as u8);
 
-    // QEMU が終了しなかった場合に備え、安全策として無限 hlt ループ
     loop {
         hlt();
     }
