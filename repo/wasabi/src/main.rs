@@ -86,6 +86,11 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     let total_mib = total_pages * 4096 / 1024 / 1024;
     writeln!(writer, "Total: {total_pages} pages = {total_mib} MiB").unwrap();
 
+    writeln!(writer, "Hello, Non-UEFI world!").unwrap();
+    let cr3 = wasabi::x86::read_cr3();
+    // println!("cr3 = {cr3:#p}");
+    // hexdump(unsafe { &*cr3 });
+
     loop {
         hlt();
     }
