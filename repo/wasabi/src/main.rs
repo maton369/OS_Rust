@@ -311,10 +311,21 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     // 結果を表示
     writeln!(w, "get_memory_map status: {:?}", status).unwrap();
 
-    // 各メモリ領域を表示
-    for descriptor in memory_map.iter() {
-        writeln!(w, "{:?}", descriptor).unwrap();
+    let mut total_memory_pages = 0;
+    for e in memory_map.iter() {
+        if e.memory_type != EfiMemoryType::CONVENTIONAL_MEMORY {
+            continue;
+        }
+        total_memory_pages += e.number_of_pages;
+        writeln!(w, "{e:?}").unwrap();
     }
+
+    let total_memory_size_mib = total_memory_pages * 4096 / 1024 / 1024;
+    writeln!(
+        w,
+        "Total: {total_memory_pages} pages = {total_memory_size_mib} MiB"
+    )
+    .unwrap();
 
     // 無限ループで終了をブロック
     loop {
