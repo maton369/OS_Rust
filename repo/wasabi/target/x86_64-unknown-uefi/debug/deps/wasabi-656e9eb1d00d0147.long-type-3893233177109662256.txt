@@ -1,0 +1,1 @@
+spin::mutex::Mutex<Option<BitmapTextWriter<VramBufferInfo>>>

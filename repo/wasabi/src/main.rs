@@ -5,27 +5,21 @@
 //#![test_runner(crate::test_runner::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-use core::arch::asm;
-use core::fmt::Write;
-use core::mem::{offset_of, size_of};
-use core::panic::PanicInfo;
 use core::time::Duration;
-use core::writeln;
-use wasabi::print::*;
+use wasabi::print::*; // `Write` トレイトをインポートして、`write!` マクロを使えるようにする
 
 use wasabi::{
     allocator, // allocator モジュール全体をインポート。これで `allocator::*` の代わりに `wasabi::allocator::*` を使う
     executor::{self, Executor, Task, TimeoutFuture},
-    graphics::{self, draw_test_pattern, fill_rect},
-    hpet::{self, global_timestamp, set_global_hpet, Hpet},
-    init::{self, init_basic_runtime, init_paging},
+    hpet::{self, global_timestamp, Hpet, HpetRegisters},
+    init::{self, init_allocator, init_basic_runtime, init_display, init_hpet, init_paging},
     serial::{self, SerialPort},
     //test_runner::{self, Testable},
     uefi::{
         self, init_vram, locate_loaded_image_protocol, EfiHandle, EfiMemoryDescriptor,
-        EfiMemoryType, EfiSystemTable, VramTextWriter,
+        EfiSystemTable,
     },
-    x86::{self, flush_tlb, init_exceptions, read_cr3, trigger_debug_interrupt, PageAttr},
+    x86::{self, init_exceptions},
 };
 
 use wasabi::{error, info, println, warn};
@@ -44,6 +38,8 @@ pub extern "C" fn efi_main(_image_handle: usize, _system_table: usize) -> ! {
 #[cfg(not(feature = "test"))]
 #[no_mangle]
 pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) -> ! {
+    use wasabi::hpet::set_global_hpet;
+
     println!("Booting WasabiOS...");
 
     let loaded_image_protocol = locate_loaded_image_protocol(image_handle, efi_system_table)
@@ -55,74 +51,34 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
 
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
 
-    let (vw, vh) = (vram.width, vram.height);
-    fill_rect(&mut vram, 0x000000, 0, 0, vw, vh).expect("fill_rect failed");
-
-    draw_test_pattern(&mut vram);
-
-    let mut writer = VramTextWriter::new(&mut vram);
-    let writer_ref: &mut (dyn Write + Send) = &mut writer;
-    let writer_static: &'static mut (dyn Write + Send) =
-        unsafe { core::mem::transmute(writer_ref) };
-    wasabi::print::set_writer(writer_static);
-
     let acpi = efi_system_table.acpi_table().expect("ACPI table not found");
+
+    init_display(&mut vram);
+
+    set_global_vram(vram);
+
+    set_global_hpet(Hpet::new(unsafe {
+        &mut *(0x0000_0000_fed0_0000 as *mut HpetRegisters)
+    }));
 
     // wasabi::print::set_serial_output(true); // Removed: function does not exist
     let mut memory_map = init_basic_runtime(image_handle, efi_system_table);
 
-    let mut total_pages = 0;
-    for desc in memory_map.iter() {
-        if desc.memory_type != EfiMemoryType::CONVENTIONAL_MEMORY {
-            continue;
-        }
-        total_pages += desc.number_of_pages;
-        writeln!(writer, "{desc:?}").unwrap();
-    }
+    info!("Hello, Non-UEFI world!");
 
-    let total_mib = total_pages * 4096 / 1024 / 1024;
-    writeln!(writer, "Total: {total_pages} pages = {total_mib} MiB").unwrap();
-
-    writeln!(writer, "Hello, Non-UEFI world!").unwrap();
-    let cr3 = wasabi::x86::read_cr3();
-    {
-        // let mut serial = SerialPort::default();
-        // wasabi::print::hexdump_to(unsafe { &*cr3 }, &mut serial);
-    }
-
-    let t = Some(unsafe { &*cr3 });
-    let t = t.and_then(|t| t.next_level(0));
-    let t = t.and_then(|t| t.next_level(0));
-    let t = t.and_then(|t| t.next_level(0));
+    init_allocator(&memory_map);
 
     let (_gdt, _idt) = init_exceptions();
-    info!("Exception initialized!");
-    // trigger_debug_interrupt();
-    info!("Execution continued.");
     init_paging(&memory_map);
-    info!("Now we are using our own page tables!");
 
-    let page_table = read_cr3();
-    unsafe {
-        (*page_table)
-            .create_mapping(0, 4096, 0, PageAttr::NotPresent)
-            .expect("Failed to unmap page 0");
-    }
-    flush_tlb();
+    init_hpet(acpi);
 
     let task = Task::new(async {
         info!("Hello from the async world!");
         Ok(())
     });
 
-    let hpet = acpi.hpet().expect("Failed to get HPET from ACPI");
-    let hpet = hpet
-        .base_address()
-        .expect("Failed to get HPET base address");
-    info!("HPET is at {hpet:#p}");
-    let hpet = Hpet::new(hpet);
-
-    set_global_hpet(hpet);
+    init_hpet(acpi);
     let t0 = global_timestamp();
     let task1 = Task::new(async move {
         for i in 100..=103 {
@@ -142,7 +98,7 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     let mut executor = Executor::new();
     executor.enqueue(task1);
     executor.enqueue(task2);
-    Executor::run(executor)
+    Executor::run(executor);
 }
 
 #[panic_handler]

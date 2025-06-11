@@ -1,8 +1,6 @@
 use crate::acpi::AcpiRsdpStruct;
-use crate::graphics::draw_font_fg; // フォント描画関数
 use crate::graphics::Bitmap; // ビットマップ型
 use crate::result::Result;
-use core::fmt; // フォーマット関連のトレイト
 use core::mem::{offset_of, size_of}; // メモリ操作用
 use core::ptr::null_mut; // 独自の Result 型 // ヌルポインタ操作
 
@@ -630,63 +628,6 @@ pub fn init_vram(efi_system_table: &EfiSystemTable) -> Result<VramBufferInfo> {
         height: gp.mode.info.vertical_resolution as i64,
         pixels_per_line: gp.mode.info.pixels_per_scan_line as i64,
     })
-}
-
-/// VRAM に文字列を描画するためのラッパー構造体
-///
-/// `core::fmt::Write` トレイトを実装することで、`write!` や `writeln!` マクロを使用して
-/// VRAM にテキスト出力できるようにする。
-///
-/// UEFI 環境で `no_std` のため、通常の標準出力（println!など）は使えない。
-/// この構造体を使って、画面に直接テキストを描画する。
-pub struct VramTextWriter<'a> {
-    /// 描画先の VRAM 情報への可変参照
-    vram: &'a mut VramBufferInfo,
-
-    /// 現在の描画位置（次に描画する文字の X 座標）
-    cursor_x: i64,
-
-    /// 現在の描画行（次に描画する文字の Y 座標）
-    cursor_y: i64,
-}
-
-impl<'a> VramTextWriter<'a> {
-    /// 新しい `VramTextWriter` インスタンスを作成する関数
-    ///
-    /// # 引数
-    /// - `vram`: VRAM（ビデオメモリ）への可変参照。このバッファにテキストを描画する。
-    ///
-    /// # 戻り値
-    /// - 新しく初期化された `VramTextWriter` 構造体。カーソル位置は画面左上（0,0）に設定される。
-    pub fn new(vram: &'a mut VramBufferInfo) -> Self {
-        Self {
-            vram,        // VRAM への可変参照を保持
-            cursor_x: 0, // X座標（左端）から開始
-            cursor_y: 0, // Y座標（上端）から開始
-        }
-    }
-}
-
-unsafe impl<'a> Send for VramTextWriter<'a> {}
-
-impl fmt::Write for VramTextWriter<'_> {
-    /// `core::fmt::Write` トレイトを実装することで、
-    /// `write!` や `writeln!` マクロを使って画面に文字列を描画できるようになる。
-    fn write_str(&mut self, s: &str) -> fmt::Result {
-        // 入力文字列を1文字ずつ処理
-        for c in s.chars() {
-            if c == '\n' {
-                // 改行文字なら、カーソルを次の行の先頭に移動
-                self.cursor_x = 0; // 行頭に戻る
-                self.cursor_y += 16; // 1行分（高さ16ピクセル）下に進む
-                continue;
-            }
-            // 通常の文字を描画（白色で描画）
-            draw_font_fg(self.vram, self.cursor_x, self.cursor_y, 0xffffff, c);
-            self.cursor_x += 8; // 1文字分（幅8ピクセル）右に進める
-        }
-        Ok(()) // フォーマット処理が成功したことを返す
-    }
 }
 
 /// ブートサービスを終了して、UEFI から独立した実行状態に移行する

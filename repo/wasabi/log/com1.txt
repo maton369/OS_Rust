@@ -2,6 +2,37 @@
 BdsDxe: loading Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1,0x1)/Ata(Primary,Master,0x0)
 BdsDxe: starting Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1,0x1)/Ata(Primary,Master,0x0)
 Booting WasabiOS...
-[INFO]  src/main.rs:52 : info
-[WARN]  src/main.rs:53 : warn
-[ERROR] src/main.rs:54 : error
+[INFO]  src/main.rs:48 : info
+[WARN]  src/main.rs:49 : warn
+[ERROR] src/main.rs:50 : error
+[INFO]  src/main.rs:67 : Hello, Non-UEFI world!
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 4096, virtual_start: 0, number_of_pages: 159, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 1048576, virtual_start: 0, number_of_pages: 1792, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 8421376, virtual_start: 0, number_of_pages: 3, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 8437760, virtual_start: 0, number_of_pages: 4, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 22020096, virtual_start: 0, number_of_pages: 764470, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 3153420288, virtual_start: 0, number_of_pages: 9159, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 3191435264, virtual_start: 0, number_of_pages: 118, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 3192897536, virtual_start: 0, number_of_pages: 1, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 3194224640, virtual_start: 0, number_of_pages: 2, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 3194257408, virtual_start: 0, number_of_pages: 2, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 3219128320, virtual_start: 0, number_of_pages: 154, attribute: 15 }
+[INFO]  src/init.rs:51 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 4294967296, virtual_start: 0, number_of_pages: 262144, attribute: 15 }
+[INFO]  src/init.rs:54 : Total: 1038008 pages = 4054 MiB
+[INFO]  src/x86.rs:839: TSS64 created @ 0x13FF7FE80
+[INFO]  src/x86.rs:908: Loading GDT @ 0x000000013FF7FE20
+[INFO]  src/x86.rs:914: Loading TSS (selector = 0x18)
+[INFO]  src/x86.rs:770: Loading IDT: IdtrParameters { limit: 4095, base: 0x13ff7ee00 }
+[INFO]  src/init.rs:39 : HPET is at 0x00000000fed00000
+[INFO]  src/init.rs:39 : HPET is at 0x00000000fed00000
+[INFO]  src/executor.rs:91 : Executor starts running...
+[INFO]  src/main.rs:85 : 100 hpet.main_counter = 7.332ms
+[INFO]  src/main.rs:92 : 200 hpet.main_counter = 13.706ms
+[INFO]  src/main.rs:85 : 101 hpet.main_counter = 1.013125s
+[INFO]  src/main.rs:92 : 201 hpet.main_counter = 1.017475s
+[INFO]  src/main.rs:85 : 102 hpet.main_counter = 2.016811s
+[INFO]  src/main.rs:92 : 202 hpet.main_counter = 2.020806s
+[INFO]  src/main.rs:85 : 103 hpet.main_counter = 3.020132s
+[INFO]  src/main.rs:92 : 203 hpet.main_counter = 3.024475s
+[INFO]  src/executor.rs:99 : Task completed: Task(src/main.rs:83): Ok(())
+[INFO]  src/executor.rs:99 : Task completed: Task(src/main.rs:90): Ok(())
