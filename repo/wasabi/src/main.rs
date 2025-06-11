@@ -63,6 +63,9 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     let writer_static: &'static mut (dyn Write + Send) =
         unsafe { core::mem::transmute(writer_ref) };
     wasabi::print::set_writer(writer_static);
+
+    let acpi = efi_system_table.acpi_table().expect("ACPI table not found");
+
     // wasabi::print::set_serial_output(true); // Removed: function does not exist
     let mut memory_map = init_basic_runtime(image_handle, efi_system_table);
 
@@ -110,7 +113,12 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
         Ok(())
     });
 
-    let task1 = Task::new(async {
+    let hpet = acpi.hpet().expect("Failed to get HPET from ACPI");
+    let hpet = hpet
+        .base_address()
+        .expect("Failed to get HPET base address");
+    info!("HPET is at {hpet:#018X}");
+    let task1 = Task::new(async move {
         for i in 100..=103 {
             info!("{i}");
             yield_execution().await;

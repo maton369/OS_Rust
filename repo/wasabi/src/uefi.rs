@@ -1,3 +1,4 @@
+use crate::acpi::AcpiRsdpStruct;
 use crate::graphics::draw_font_fg; // フォント描画関数
 use crate::graphics::Bitmap; // ビットマップ型
 use crate::result::Result;
@@ -56,6 +57,13 @@ const EFI_LOADED_IMAGE_PROTOCOL_GUID: EfiGuid = EfiGuid {
     data1: 0x9562,
     data2: 0x11d2,
     data3: [0x8E, 0x3F, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B],
+};
+
+const EFI_ACPI_TABLE_GUID: EfiGuid = EfiGuid {
+    data0: 0x8868e871,
+    data1: 0xe4f1,
+    data2: 0x11d3,
+    data3: [0xbc, 0x22, 0x00, 0x80, 0xc7, 0x3c, 0x88, 0x81],
 };
 
 /// UEFI 関数の返却値を示すステータス列挙体（現時点では Success のみ定義）
@@ -410,6 +418,13 @@ const _: () = assert!(offset_of!(EfiBootServicesTable, exit_boot_services) == 23
 // 232（前半）+ 8（exit_boot_services）+ 80（_reserved4） = 320バイト目に位置することを確認。
 const _: () = assert!(offset_of!(EfiBootServicesTable, locate_protocol) == 320);
 
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct EfiConfigurationTable {
+    vendor_guid: EfiGuid,
+    pub vendor_table: *const u8,
+}
+
 /// UEFI のシステムテーブル構造体（UEFI が提供するすべてのサービスへのエントリポイント集）
 ///
 /// この構造体は、UEFI ファームウェアから渡される引数 `efi_system_table` に対応しており、
@@ -423,6 +438,8 @@ pub struct EfiSystemTable {
     /// 例：メモリマップ取得、プロトコルの検索、ExitBootServices などの操作がここから可能。
     /// 多くの UEFI 機能はこの `boot_services` 経由で呼び出される。
     pub boot_services: &'static EfiBootServicesTable,
+    number_of_table_entries: usize,
+    configuration_table: *const EfiConfigurationTable,
 }
 
 // boot_services のオフセットが 96 バイトであることをコンパイル時に検証
@@ -439,6 +456,25 @@ pub struct EfiSystemTable {
 /// repr(C) を忘れて Rust 独自の再配置が発生した場合に
 // ビルド時にエラーで検出できるようにするための安全装置。
 const _: () = assert!(offset_of!(EfiSystemTable, boot_services) == 96);
+
+impl EfiSystemTable {
+    pub fn boot_services(&self) -> &EfiBootServicesTable {
+        self.boot_services
+    }
+    fn lookup_config_table(&self, guid: &EfiGuid) -> Option<EfiConfigurationTable> {
+        for i in 0..self.number_of_table_entries {
+            let ct = unsafe { &*self.configuration_table.add(i) };
+            if ct.vendor_guid == *guid {
+                return Some(*ct);
+            }
+        }
+        None
+    }
+    pub fn acpi_table(&self) -> Option<&'static AcpiRsdpStruct> {
+        self.lookup_config_table(&EFI_ACPI_TABLE_GUID)
+            .map(|t| unsafe { &*(t.vendor_table as *const AcpiRsdpStruct) })
+    }
+}
 
 /// 画面情報の構造体（GOPモード情報の一部）
 ///
