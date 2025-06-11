@@ -4,3 +4,4 @@ BdsDxe: starting Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x
 Booting WasabiOS...
 [INFO]  src/main.rs:50 : info
 [WARN]  src/main.rs:51 : warn
+[ERROR] src/main.rs:52 : error

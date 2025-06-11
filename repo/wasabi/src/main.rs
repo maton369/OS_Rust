@@ -14,7 +14,7 @@ use wasabi::print::*;
 
 use wasabi::{
     allocator, // allocator モジュール全体をインポート。これで `allocator::*` の代わりに `wasabi::allocator::*` を使う
-    executor::{self, Executor, Task},
+    executor::{self, yield_execution, Executor, Task},
     graphics::{self, draw_test_pattern, fill_rect},
     init::{self, init_basic_runtime, init_paging},
     serial::{self, SerialPort},
@@ -49,6 +49,7 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
 
     info!("info");
     warn!("warn");
+    error!("error");
 
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
 
@@ -112,15 +113,18 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     let task1 = Task::new(async {
         for i in 100..=103 {
             info!("{i}");
+            yield_execution().await;
         }
         Ok(())
     });
     let task2 = Task::new(async {
         for i in 200..=203 {
             info!("{i}");
+            yield_execution().await;
         }
         Ok(())
     });
+
     let mut executor = Executor::new();
     executor.enqueue(task1);
     executor.enqueue(task2);
