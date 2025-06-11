@@ -12,7 +12,9 @@ use wasabi::{
     allocator, // allocator モジュール全体をインポート。これで `allocator::*` の代わりに `wasabi::allocator::*` を使う
     executor::{self, Executor, Task, TimeoutFuture},
     hpet::{self, global_timestamp, Hpet, HpetRegisters},
-    init::{self, init_allocator, init_basic_runtime, init_display, init_hpet, init_paging},
+    init::{
+        self, init_allocator, init_basic_runtime, init_display, init_hpet, init_paging, init_pci,
+    },
     serial::{self, SerialPort},
     //test_runner::{self, Testable},
     uefi::{self, init_vram, locate_loaded_image_protocol, EfiHandle, EfiSystemTable},
@@ -69,6 +71,8 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     init_paging(&memory_map);
 
     init_hpet(acpi);
+
+    init_pci(acpi);
 
     let task = Task::new(async {
         info!("Hello from the async world!");

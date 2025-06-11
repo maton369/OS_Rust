@@ -61,6 +61,16 @@ pub fn init_display(vram: &mut VramBufferInfo) {
     draw_test_pattern(vram);
 }
 
+pub fn init_pci(acpi: &AcpiRsdpStruct) {
+    if let Some(mcfg) = acpi.mcfg() {
+        for i in 0..mcfg.num_of_entries() {
+            if let Some(e) = mcfg.entry(i) {
+                info!("{}", e)
+            }
+        }
+    }
+}
+
 pub fn init_paging(memory_map: &MemoryMapHolder) {
     let mut table = PML4::new();
     let mut end_of_mem = 0x1_0000_0000u64;
