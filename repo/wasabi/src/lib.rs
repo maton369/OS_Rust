@@ -8,6 +8,7 @@
 #![feature(sync_unsafe_cell)] // `SyncUnsafeCell` を使用するための機能（nightly）
 #![feature(const_caller_location)] // `const_caller_location` を使用するための機能（nightly)
 #![feature(const_location_fields)] // `const_location_fields` を使用するための機能（nightly）
+#![feature(option_get_or_insert_default)] // `Option::get_or_insert_default` を使用するための機能（nightly）
 
 // モジュール定義
 pub mod acpi;
