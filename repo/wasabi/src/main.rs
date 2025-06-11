@@ -16,6 +16,7 @@ use wasabi::{
     allocator, // allocator モジュール全体をインポート。これで `allocator::*` の代わりに `wasabi::allocator::*` を使う
     executor::{self, yield_execution, Executor, Task},
     graphics::{self, draw_test_pattern, fill_rect},
+    hpet::Hpet,
     init::{self, init_basic_runtime, init_paging},
     serial::{self, SerialPort},
     //test_runner::{self, Testable},
@@ -117,10 +118,12 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     let hpet = hpet
         .base_address()
         .expect("Failed to get HPET base address");
-    info!("HPET is at {hpet:#018X}");
+    info!("HPET is at {hpet:#p}");
+    let hpet = Hpet::new(hpet);
+
     let task1 = Task::new(async move {
         for i in 100..=103 {
-            info!("{i}");
+            info!("{i} hpet.main_counter = {}", hpet.main_counter());
             yield_execution().await;
         }
         Ok(())
