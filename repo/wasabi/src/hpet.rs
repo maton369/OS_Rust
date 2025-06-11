@@ -1,9 +1,13 @@
+use crate::mutex::Mutex;
 use core::mem::size_of;
 use core::ptr::read_volatile;
 use core::ptr::write_volatile;
+use core::time::Duration;
+
 const TIMER_CONFIG_LEVEL_TRIGGER: u64 = 1 << 1;
 const TIMER_CONFIG_INT_ENABLE: u64 = 1 << 2;
 const TIMER_CONFIG_USE_PERIODIC_MODE: u64 = 1 << 3;
+
 #[repr(C)]
 struct TimerRegister {
     configuration_and_capability: u64,
@@ -15,6 +19,7 @@ impl TimerRegister {
         write_volatile(&mut self.configuration_and_capability, config);
     }
 }
+
 #[repr(C)]
 pub struct HpetRegisters {
     capabilities_and_id: u64,
@@ -26,6 +31,7 @@ pub struct HpetRegisters {
     timers: [TimerRegister; 32],
 }
 const _: () = assert!(size_of::<HpetRegisters>() == 0x500);
+
 pub struct Hpet {
     registers: &'static mut HpetRegisters,
     #[allow(unused)]
@@ -71,5 +77,19 @@ impl Hpet {
     }
     pub fn freq(&self) -> u64 {
         self.freq
+    }
+}
+
+static HPET: Mutex<Option<Hpet>> = Mutex::new(None);
+pub fn set_global_hpet(hpet: Hpet) {
+    assert!(HPET.lock().is_none());
+    *HPET.lock() = Some(hpet);
+}
+pub fn global_timestamp() -> Duration {
+    if let Some(hpet) = &*HPET.lock() {
+        let ns = hpet.main_counter() as u128 * 1_000_000_000 / hpet.freq() as u128;
+        Duration::from_nanos(ns as u64)
+    } else {
+        Duration::ZERO
     }
 }
