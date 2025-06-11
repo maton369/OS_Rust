@@ -9,12 +9,13 @@ use core::arch::asm;
 use core::fmt::Write;
 use core::mem::{offset_of, size_of};
 use core::panic::PanicInfo;
+use core::time::Duration;
 use core::writeln;
 use wasabi::print::*;
 
 use wasabi::{
     allocator, // allocator モジュール全体をインポート。これで `allocator::*` の代わりに `wasabi::allocator::*` を使う
-    executor::{self, yield_execution, Executor, Task},
+    executor::{self, Executor, Task, TimeoutFuture},
     graphics::{self, draw_test_pattern, fill_rect},
     hpet::{self, global_timestamp, set_global_hpet, Hpet},
     init::{self, init_basic_runtime, init_paging},
@@ -126,14 +127,14 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     let task1 = Task::new(async move {
         for i in 100..=103 {
             info!("{i} hpet.main_counter = {:?}", global_timestamp() - t0);
-            yield_execution().await;
+            TimeoutFuture::new(Duration::from_secs(1)).await;
         }
         Ok(())
     });
     let task2 = Task::new(async move {
         for i in 200..=203 {
             info!("{i} hpet.main_counter = {:?}", global_timestamp() - t0);
-            yield_execution().await;
+            TimeoutFuture::new(Duration::from_secs(1)).await;
         }
         Ok(())
     });
