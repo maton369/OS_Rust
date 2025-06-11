@@ -11,12 +11,13 @@ Booting WasabiOS...
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 8421376, virtual_start: 0, number_of_pages: 3, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 8437760, virtual_start: 0, number_of_pages: 4, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 22020096, virtual_start: 0, number_of_pages: 502326, attribute: 15 }
-[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2079678464, virtual_start: 0, number_of_pages: 9102, attribute: 15 }
+[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2079678464, virtual_start: 0, number_of_pages: 9099, attribute: 15 }
+[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2117922816, virtual_start: 0, number_of_pages: 3, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2119258112, virtual_start: 0, number_of_pages: 3, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2145386496, virtual_start: 0, number_of_pages: 154, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 4294967296, virtual_start: 0, number_of_pages: 262144, attribute: 15 }
-[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 5369237504, virtual_start: 0, number_of_pages: 262015, attribute: 15 }
-[INFO]  src/init.rs:55 : Total: 1037702 pages = 4053 MiB
+[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 5369245696, virtual_start: 0, number_of_pages: 262013, attribute: 15 }
+[INFO]  src/init.rs:55 : Total: 1037700 pages = 4053 MiB
 [INFO]  src/x86.rs:857: TSS64 created @ 0x17FF7FE80
 [INFO]  src/x86.rs:926: Loading GDT @ 0x000000017FF7FE20
 [INFO]  src/x86.rs:932: Loading TSS (selector = 0x18)
@@ -27,8 +28,11 @@ Booting WasabiOS...
 [INFO]  src/pci.rs:186: (vendor: 0x1234, device: 0x1111)
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x10D3)
 [INFO]  src/pci.rs:186: (vendor: 0x1B36, device: 0x000D)
-[INFO]  src/xhci.rs:26 : Xhci found at: /pci/bus/0x00/device/0x03/function/0x0)
-[INFO]  src/xhci.rs:31 : xhci: BarMem64[0x0000000800000000..0x0000000800004000]
+[INFO]  src/xhci.rs:93 : Xhci found at: /pci/bus/0x00/device/0x03/function/0x0)
+[INFO]  src/xhci.rs:98 : xhci: BarMem64[0x0000000800000000..0x0000000800004000]
+[INFO]  src/xhci.rs:100: xhci: cap_regs.MaxSlots = 64
+[INFO]  src/xhci.rs:104: xhci: op_regs.USBSTS = 1
+[INFO]  src/xhci.rs:105: xhci: rt_regs.MFINDEX = 13674
 [ERROR] src/pci.rs:189: PCI: driver attach() failed: "wip"
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2918)
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2922)
@@ -36,14 +40,14 @@ Booting WasabiOS...
 [INFO]  src/init.rs:40 : HPET is at 0x00000000fed00000
 [INFO]  src/executor.rs:166: Starting global executor loop
 [INFO]  src/executor.rs:92 : Executor starts running...
-[INFO]  src/main.rs:77 : 100 hpet.main_counter = 13.6ms
-[INFO]  src/main.rs:84 : 200 hpet.main_counter = 19.843ms
+[INFO]  src/main.rs:77 : 100 hpet.main_counter = 14.275ms
+[INFO]  src/main.rs:84 : 200 hpet.main_counter = 21.793ms
 [INFO]  src/main.rs:96 : Started to monitor serial port
-[INFO]  src/main.rs:77 : 101 hpet.main_counter = 1.019294s
-[INFO]  src/main.rs:77 : 102 hpet.main_counter = 2.022557s
-[INFO]  src/main.rs:84 : 201 hpet.main_counter = 2.026031s
-[INFO]  src/main.rs:77 : 103 hpet.main_counter = 3.026041s
-[INFO]  src/main.rs:84 : 202 hpet.main_counter = 4.029234s
+[INFO]  src/main.rs:77 : 101 hpet.main_counter = 1.021066s
+[INFO]  src/main.rs:77 : 102 hpet.main_counter = 2.024315s
+[INFO]  src/main.rs:84 : 201 hpet.main_counter = 2.027746s
+[INFO]  src/main.rs:77 : 103 hpet.main_counter = 3.027775s
+[INFO]  src/main.rs:84 : 202 hpet.main_counter = 4.030868s
 [INFO]  src/executor.rs:100: Task completed: Task(src/main.rs:108): Ok(())
-[INFO]  src/main.rs:84 : 203 hpet.main_counter = 6.032983s
+[INFO]  src/main.rs:84 : 203 hpet.main_counter = 6.034164s
 [INFO]  src/executor.rs:100: Task completed: Task(src/main.rs:109): Ok(())
