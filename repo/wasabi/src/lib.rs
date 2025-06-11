@@ -25,6 +25,7 @@ pub mod result; // 独自の Result 型など（文字列エラー）
 pub mod serial; // シリアルポート通信（デバッグ用）
 pub mod uefi; // UEFI 関連構造体・プロトコル・API呼び出し
 pub mod x86; // x86向けの低レベル操作（hlt命令など） // メモリアロケータ（カスタムアロケータの実装） // シリアルポート通信（デバッグ用） // 初期化処理（UEFI アプリケーションの初期化） // タスク実行やスケジューリング // ACPI（Advanced Configuration and Power Interface）関連の処理 // HPET（High Precision Event Timer）関連の処理 // ミューテックス（排他制御のための同期プリミティブ） // PCIデバイスの検出と操作
+pub mod xhci; // USBデバイスの検出と操作
 
 // テスト用ランナー定義
 #[cfg(test)]
