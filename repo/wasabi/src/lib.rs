@@ -21,6 +21,7 @@ pub mod init; // 初期化処理（UEFI アプリケーションの初期化）
 pub mod mmio;
 pub mod mutex; // ミューテックス（排他制御のための同期プリミティブ）
 pub mod pci; // PCIデバイスの検出と操作
+pub mod pin; // ピン留めされたデータ構造（MMIOやI/Oレジスタの安全なアクセス）
 pub mod print; // 文字列出力やフォーマット処理
 pub mod qemu; // QEMU デバッグ操作や仮想デバイスとのやり取り
 pub mod result; // 独自の Result 型など（文字列エラー）

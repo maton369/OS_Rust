@@ -3,6 +3,11 @@ use core::mem::size_of;
 use core::pin::Pin;
 use core::slice;
 
+/// # Safety
+/// Implementing this trait is safe only when the target type can be constructed
+/// from any byte sequences that has the same size. If not, modification made
+/// via the byte slice produced by as_mut_slice can be an undefined behavior
+/// since the bytes can not be interpreted as the original type.
 pub unsafe trait IntoPinnedMutableSlice: Sized + Copy + Clone {
     fn as_mut_slice(self: Pin<&mut Self>) -> Pin<&mut [u8]> {
         Pin::new(unsafe {
