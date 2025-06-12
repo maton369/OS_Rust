@@ -5,7 +5,7 @@ Booting WasabiOS...
 image_handle: 0x000000007EBA6018
 efi_system_table: 0x000000007f9ee018
 image_base: 0x0000000140000000
-image_size: 0x00000000000E0000
+image_size: 0x00000000000E1000
 [INFO]  src/main.rs:41 : info
 [WARN]  src/main.rs:42 : warn
 [ERROR] src/main.rs:43 : error
@@ -27,8 +27,8 @@ image_size: 0x00000000000E0000
 [INFO]  src/init.rs:79 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2119229440, virtual_start: 0, number_of_pages: 3, attribute: 15 }
 [INFO]  src/init.rs:79 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2145386496, virtual_start: 0, number_of_pages: 154, attribute: 15 }
 [INFO]  src/init.rs:79 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 4294967296, virtual_start: 0, number_of_pages: 262144, attribute: 15 }
-[INFO]  src/init.rs:79 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 5369626624, virtual_start: 0, number_of_pages: 261920, attribute: 15 }
-[INFO]  src/init.rs:82 : Total: 1037600 pages = 4053 MiB
+[INFO]  src/init.rs:79 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 5369630720, virtual_start: 0, number_of_pages: 261919, attribute: 15 }
+[INFO]  src/init.rs:82 : Total: 1037599 pages = 4053 MiB
 [INFO]  src/x86.rs:760: TSS64 created @ 0x17FF7FE80
 [INFO]  src/x86.rs:834: Loading GDT @ 0x000000017FF7FE20
 [INFO]  src/x86.rs:841: Loading TSS ( selector = 0x18 )
@@ -51,7 +51,7 @@ image_size: 0x00000000000E0000
 [INFO]  src/executor.rs:92 : Executor starts running...
 [INFO]  src/xhci.rs:108: xhci: cap_regs.MaxSlots = 64
 [INFO]  src/xhci.rs:112: xhci: op_regs.USBSTS = 0
-[INFO]  src/xhci.rs:116: xhci: rt_regs.MFINDEX = 1131
+[INFO]  src/xhci.rs:116: xhci: rt_regs.MFINDEX = 1226
 [INFO]  src/xhci.rs:120: PORTSC values for port 1..9
 [INFO]  src/xhci.rs:124:     1: 0x000202A0
 [INFO]  src/xhci.rs:124:     2: 0x000202A0
@@ -65,23 +65,26 @@ image_size: 0x00000000000E0000
 [INFO]  src/xhci.rs:226: xhci: resetting port 6
 [INFO]  src/xhci.rs:228: xhci: port 6 has been reset
 [INFO]  src/xhci.rs:233: xhci: port 6 is enabled
-[INFO]  src/main.rs:60 : 100 hpet.main_counter = 163.825ms
-[INFO]  src/main.rs:67 : 200 hpet.main_counter = 170.032ms
+[INFO]  src/main.rs:60 : 100 hpet.main_counter = 59.434ms
+[INFO]  src/main.rs:67 : 200 hpet.main_counter = 66.044ms
 [INFO]  src/main.rs:78 : Started to monitor serial port
-[INFO]  src/xhci.rs:863: unhandled event: GenericTrbEntry { data: Volatile { value: 100663296 }, option: Volatile { value: 16777216 }, control: Volatile { value: 34817 } }
+[INFO]  src/xhci.rs:889: unhandled event: GenericTrbEntry { data: Volatile { value: 100663296 }, option: Volatile { value: 16777216 }, control: Volatile { value: 34817 } }
 [INFO]  src/xhci.rs:143: slot 1 is assigned for port 6
 [INFO]  src/xhci.rs:145: AddressDeviceCommand succeeded
 [INFO]  src/xhci.rs:148: Got a DeviceDescriptor: UsbDeviceDescriptor { desc_length: 18, desc_type: 1, version: 512, device_class: 0, device_subclass: 0, device_protocol: 0, max_packet_size: 64, vendor_id: 1575, product_id: 1, device_version: 0, manufacturer_idx: 1, product_idx: 3, serial_idx: 10, num_of_config: 1 }
 [INFO]  src/xhci.rs:151: xhci: device detected: vid:pid = 0x0627:0x0001
 [INFO]  src/xhci.rs:197: xhci: v/p/s = Some("QEMU")/Some("QEMU USB Tablet")/Some("28754-0000:00:03.0-2")
 [INFO]  src/xhci.rs:200: xhci: [Config(ConfigDescriptor { desc_length: 9, desc_type: 2, total_length: 34, num_of_interfaces: 1, config_value: 1, config_string_index: 7, attribute: 160, max_power: 50, _pinned: PhantomPinned }), Interface(InterfaceDescriptor { desc_length: 9, desc_type: 4, interface_number: 0, alt_setting: 0, num_of_endpoints: 1, interface_class: 3, interface_subclass: 0, interface_protocol: 0, interface_index: 0 }), Unknown { desc_len: 9, desc_type: 33 }, Endpoint(EndpointDescriptor { desc_length: 7, desc_type: 5, endpoint_address: 129, attributes: 3, max_packet_size: 8, interval: 4 })]
-[INFO]  src/tablet.rs:29 : USB tablet found
+[INFO]  src/tablet.rs:30 : USB tablet found
+[INFO]  src/tablet.rs:34 : Report Descriptor:
+00000000: 00 10 00 00 00 00 00 00 00 4D 75 7E 01 00 00 00 |.........Mu~....|
+00000010: 00 10 00 00 00 00 00 00                         |........|
 [INFO]  src/executor.rs:100: Task completed: Task(src/xhci.rs:104): Ok(())
-[INFO]  src/main.rs:60 : 101 hpet.main_counter = 1.169544s
-[INFO]  src/main.rs:60 : 102 hpet.main_counter = 2.172581s
-[INFO]  src/main.rs:67 : 201 hpet.main_counter = 2.175682s
-[INFO]  src/main.rs:60 : 103 hpet.main_counter = 3.175702s
+[INFO]  src/main.rs:60 : 101 hpet.main_counter = 1.065654s
+[INFO]  src/main.rs:60 : 102 hpet.main_counter = 2.068741s
+[INFO]  src/main.rs:67 : 201 hpet.main_counter = 2.071704s
+[INFO]  src/main.rs:60 : 103 hpet.main_counter = 3.071731s
+[INFO]  src/main.rs:67 : 202 hpet.main_counter = 4.074531s
 [INFO]  src/executor.rs:100: Task completed: Task(src/main.rs:87): Ok(())
-[INFO]  src/main.rs:67 : 202 hpet.main_counter = 4.182449s
-[INFO]  src/main.rs:67 : 203 hpet.main_counter = 6.185683s
+[INFO]  src/main.rs:67 : 203 hpet.main_counter = 6.078192s
 [INFO]  src/executor.rs:100: Task completed: Task(src/main.rs:88): Ok(())
