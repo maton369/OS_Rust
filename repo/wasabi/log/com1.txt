@@ -11,12 +11,12 @@ Booting WasabiOS...
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 8421376, virtual_start: 0, number_of_pages: 3, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 8437760, virtual_start: 0, number_of_pages: 4, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 22020096, virtual_start: 0, number_of_pages: 502326, attribute: 15 }
-[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2079678464, virtual_start: 0, number_of_pages: 9102, attribute: 15 }
-[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2119258112, virtual_start: 0, number_of_pages: 3, attribute: 15 }
+[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2079678464, virtual_start: 0, number_of_pages: 9099, attribute: 15 }
+[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2119262208, virtual_start: 0, number_of_pages: 1, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2145386496, virtual_start: 0, number_of_pages: 154, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 4294967296, virtual_start: 0, number_of_pages: 262144, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 5369364480, virtual_start: 0, number_of_pages: 261984, attribute: 15 }
-[INFO]  src/init.rs:55 : Total: 1037671 pages = 4053 MiB
+[INFO]  src/init.rs:55 : Total: 1037666 pages = 4053 MiB
 [INFO]  src/x86.rs:858: TSS64 created @ 0x17FF7FE80
 [INFO]  src/x86.rs:927: Loading GDT @ 0x000000017FF7FE20
 [INFO]  src/x86.rs:933: Loading TSS (selector = 0x18)
@@ -28,11 +28,11 @@ Booting WasabiOS...
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x10D3)
 [INFO]  src/pci.rs:186: (vendor: 0x1B36, device: 0x000D)
 [INFO]  src/xhci.rs:199: Xhci found at: /pci/bus/0x00/device/0x03/function/0x0)
-[INFO]  src/xhci.rs:287: xhci: page_size = 4096
-[INFO]  src/xhci.rs:289: xhci: original num_scratchpad_bufs = 0
-[INFO]  src/xhci.rs:645: xhci: CommandRing constructed
-[INFO]  src/xhci.rs:384: Starting xHC...
-[INFO]  src/xhci.rs:386: xHC started running!
+[INFO]  src/xhci.rs:296: xhci: page_size = 4096
+[INFO]  src/xhci.rs:298: xhci: original num_scratchpad_bufs = 0
+[INFO]  src/xhci.rs:654: xhci: CommandRing constructed
+[INFO]  src/xhci.rs:393: Starting xHC...
+[INFO]  src/xhci.rs:395: xHC started running!
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2918)
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2922)
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2930)
@@ -41,13 +41,14 @@ Booting WasabiOS...
 [INFO]  src/executor.rs:92 : Executor starts running...
 [INFO]  src/xhci.rs:212: xhci: cap_regs.MaxSlots = 64
 [INFO]  src/xhci.rs:219: xhci: op_regs.USBSTS = 0
-[INFO]  src/xhci.rs:223: xhci: rt_regs.MFINDEX = 1169
+[INFO]  src/xhci.rs:223: xhci: rt_regs.MFINDEX = 1197
 [INFO]  src/xhci.rs:227: PORTSC values for port 1..9
-[INFO]  src/xhci.rs:230:     1: 0x000202A0
-[INFO]  src/xhci.rs:230:     2: 0x000202A0
-[INFO]  src/xhci.rs:230:     3: 0x000202A0
-[INFO]  src/xhci.rs:230:     4: 0x000202A0
-[INFO]  src/xhci.rs:230:     5: 0x000202A0
-[INFO]  src/xhci.rs:230:     6: 0x000202A0
-[INFO]  src/xhci.rs:230:     7: 0x000202A0
-[INFO]  src/xhci.rs:230:     8: 0x000202A0
+[INFO]  src/xhci.rs:233:     1: 0x000202A0 (CCS: false)
+[INFO]  src/xhci.rs:233:     2: 0x000202A0 (CCS: false)
+[INFO]  src/xhci.rs:233:     3: 0x000202A0 (CCS: false)
+[INFO]  src/xhci.rs:233:     4: 0x000202A0 (CCS: false)
+[INFO]  src/xhci.rs:233:     5: 0x00020EE1 (CCS: true)
+[INFO]  src/xhci.rs:233:     6: 0x000202A0 (CCS: false)
+[INFO]  src/xhci.rs:233:     7: 0x000202A0 (CCS: false)
+[INFO]  src/xhci.rs:233:     8: 0x000202A0 (CCS: false)
+[INFO]  src/xhci.rs:240: xhci: port 5 is connected

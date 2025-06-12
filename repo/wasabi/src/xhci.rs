@@ -225,10 +225,19 @@ impl PciXhciDriver {
             xhc.regs.rt_regs.as_ref().mfindex()
         );
         info!("PORTSC values for port {:?}", xhc.regs.portsc.port_range());
+        let mut connected_port = None;
         for port in xhc.regs.portsc.port_range() {
             if let Some(e) = xhc.regs.portsc.get(port) {
-                info!("  {port:3}: {:#010X}", e.value())
+                let val = e.value();
+                let ccs = val & 1 != 0;
+                info!("  {port:3}: {:#010X} (CCS: {})", val, ccs);
+                if e.ccs() {
+                    connected_port = Some(port)
+                }
             }
+        }
+        if let Some(port) = connected_port {
+            info!("xhci: port {port} is connected");
         }
         let xhc = Rc::new(xhc);
         {
@@ -720,5 +729,11 @@ impl PortScEntry {
     fn value(&self) -> u32 {
         let portsc = self.ptr.lock();
         unsafe { read_volatile(*portsc) }
+    }
+    fn bit(&self, pos: usize) -> bool {
+        (self.value() & (1 << pos)) != 0
+    }
+    fn ccs(&self) -> bool {
+        self.bit(0)
     }
 }
