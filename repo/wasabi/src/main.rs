@@ -40,9 +40,9 @@ pub extern "C" fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystem
     let loaded_image_protocol = locate_loaded_image_protocol(image_handle, efi_system_table)
         .expect("Failed to get LoadedImageProtocol");
 
-    info!("info");
-    warn!("warn");
-    error!("error");
+    // info!("info");
+    // warn!("warn");
+    // error!("error");
 
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
 

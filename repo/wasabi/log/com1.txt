@@ -2,9 +2,6 @@
 BdsDxe: loading Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
 BdsDxe: starting Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
 Booting WasabiOS...
-[INFO]  src/main.rs:43 : info
-[WARN]  src/main.rs:44 : warn
-[ERROR] src/main.rs:45 : error
 [INFO]  src/main.rs:62 : Hello, Non-UEFI world!
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 4096, virtual_start: 0, number_of_pages: 159, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 1048576, virtual_start: 0, number_of_pages: 1792, attribute: 15 }
@@ -28,11 +25,11 @@ Booting WasabiOS...
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x10D3)
 [INFO]  src/pci.rs:186: (vendor: 0x1B36, device: 0x000D)
 [INFO]  src/xhci.rs:199: Xhci found at: /pci/bus/0x00/device/0x03/function/0x0)
-[INFO]  src/xhci.rs:291: xhci: page_size = 4096
-[INFO]  src/xhci.rs:293: xhci: original num_scratchpad_bufs = 0
-[INFO]  src/xhci.rs:649: xhci: CommandRing constructed
-[INFO]  src/xhci.rs:388: Starting xHC...
-[INFO]  src/xhci.rs:390: xHC started running!
+[INFO]  src/xhci.rs:294: xhci: page_size = 4096
+[INFO]  src/xhci.rs:296: xhci: original num_scratchpad_bufs = 0
+[INFO]  src/xhci.rs:652: xhci: CommandRing constructed
+[INFO]  src/xhci.rs:391: Starting xHC...
+[INFO]  src/xhci.rs:393: xHC started running!
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2918)
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2922)
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2930)
@@ -41,7 +38,7 @@ Booting WasabiOS...
 [INFO]  src/executor.rs:92 : Executor starts running...
 [INFO]  src/xhci.rs:212: xhci: cap_regs.MaxSlots = 64
 [INFO]  src/xhci.rs:219: xhci: op_regs.USBSTS = 0
-[INFO]  src/xhci.rs:223: xhci: rt_regs.MFINDEX = 1235
+[INFO]  src/xhci.rs:223: xhci: rt_regs.MFINDEX = 1247
 [INFO]  src/xhci.rs:227: PORTSC values for port 1..9
 [INFO]  src/xhci.rs:233:     1: 0x000202A0 (CCS: false)
 [INFO]  src/xhci.rs:233:     2: 0x000202A0 (CCS: false)
@@ -54,15 +51,16 @@ Booting WasabiOS...
 [INFO]  src/xhci.rs:240: xhci: port 5 is connected
 [INFO]  src/xhci.rs:242: xhci: resetting port 5
 [INFO]  src/xhci.rs:244: xhci: port 5 has been reset
+[INFO]  src/xhci.rs:246: xhci: port 5 is enabled
 [INFO]  src/executor.rs:100: Task completed: Task(src/xhci.rs:207): Ok(())
-[INFO]  src/main.rs:77 : 100 hpet.main_counter = 61.961ms
-[INFO]  src/main.rs:84 : 200 hpet.main_counter = 67.867ms
+[INFO]  src/main.rs:77 : 100 hpet.main_counter = 68.257ms
+[INFO]  src/main.rs:84 : 200 hpet.main_counter = 73.501ms
 [INFO]  src/main.rs:96 : Started to monitor serial port
-[INFO]  src/main.rs:77 : 101 hpet.main_counter = 1.06739s
-[INFO]  src/main.rs:77 : 102 hpet.main_counter = 2.070494s
-[INFO]  src/main.rs:84 : 201 hpet.main_counter = 2.073542s
-[INFO]  src/main.rs:77 : 103 hpet.main_counter = 3.073572s
-[INFO]  src/main.rs:84 : 202 hpet.main_counter = 4.076127s
+[INFO]  src/main.rs:77 : 101 hpet.main_counter = 1.072984s
+[INFO]  src/main.rs:77 : 102 hpet.main_counter = 2.076216s
+[INFO]  src/main.rs:84 : 201 hpet.main_counter = 2.079325s
+[INFO]  src/main.rs:77 : 103 hpet.main_counter = 3.079355s
+[INFO]  src/main.rs:84 : 202 hpet.main_counter = 4.082215s
 [INFO]  src/executor.rs:100: Task completed: Task(src/main.rs:108): Ok(())
-[INFO]  src/main.rs:84 : 203 hpet.main_counter = 6.078987s
+[INFO]  src/main.rs:84 : 203 hpet.main_counter = 6.085408s
 [INFO]  src/executor.rs:100: Task completed: Task(src/main.rs:109): Ok(())
