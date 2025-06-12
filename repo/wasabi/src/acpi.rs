@@ -147,7 +147,6 @@ impl AcpiRsdpStruct {
         let xsdt = self.xsdt();
         xsdt.find_table(b"HPET").map(AcpiHpetDescriptor::new)
     }
-
     pub fn mcfg(&self) -> Option<&AcpiMcfgDescriptor> {
         let xsdt = self.xsdt();
         xsdt.find_table(b"MCFG").map(AcpiMcfgDescriptor::new)
@@ -164,23 +163,18 @@ pub struct AcpiMcfgDescriptor {
     // 44 + (16 * n) -> Configuration space base address allocation structures
     // [EcamEntry; ?]
 }
-
 impl AcpiTable for AcpiMcfgDescriptor {
     const SIGNATURE: &'static [u8; 4] = b"MCFG";
     type Table = Self;
 }
-
 const _: () = assert!(size_of::<AcpiMcfgDescriptor>() == 44);
-
 impl AcpiMcfgDescriptor {
     pub fn header_size(&self) -> usize {
         size_of::<Self>()
     }
-
     pub fn num_of_entries(&self) -> usize {
         (self.header.length as usize - self.header_size()) / size_of::<EcamEntry>()
     }
-
     pub fn entry(&self, index: usize) -> Option<&EcamEntry> {
         if index >= self.num_of_entries() {
             None
@@ -201,13 +195,11 @@ pub struct EcamEntry {
     end_pci_bus: u8,
     _reserved: u32,
 }
-
 impl EcamEntry {
     pub fn base_address(&self) -> u64 {
         self.ecm_base_addr
     }
 }
-
 impl fmt::Display for EcamEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // To avoid "error: reference to packed field is unaligned"

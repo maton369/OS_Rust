@@ -20,23 +20,19 @@ pub fn round_up_to_nearest_pow2(v: usize) -> Result<usize> {
         .checked_shl(usize::BITS - v.wrapping_sub(1).leading_zeros())
         .ok_or("Out of range")
 }
-
-#[global_allocator]
-pub static ALLOCATOR: FirstFitAllocator = FirstFitAllocator {
-    first_header: RefCell::new(None),
-};
-
 #[test_case]
-fn round_up_to_nearest_pow2_test() {
-    assert_eq!(round_up_to_nearest_pow2(0).unwrap(), 1);
-    assert_eq!(round_up_to_nearest_pow2(1).unwrap(), 1);
-    assert_eq!(round_up_to_nearest_pow2(2).unwrap(), 2);
-    assert_eq!(round_up_to_nearest_pow2(3).unwrap(), 4);
-    assert_eq!(round_up_to_nearest_pow2(4).unwrap(), 4);
-    assert_eq!(round_up_to_nearest_pow2(5).unwrap(), 8);
-    assert_eq!(round_up_to_nearest_pow2(6).unwrap(), 8);
-    assert_eq!(round_up_to_nearest_pow2(7).unwrap(), 8);
-    assert_eq!(round_up_to_nearest_pow2(8).unwrap(), 8);
+fn round_up_to_nearest_pow2_tests() {
+    assert_eq!(round_up_to_nearest_pow2(0), Err("Out of range"));
+    assert_eq!(round_up_to_nearest_pow2(1), Ok(1));
+    assert_eq!(round_up_to_nearest_pow2(2), Ok(2));
+    assert_eq!(round_up_to_nearest_pow2(3), Ok(4));
+    assert_eq!(round_up_to_nearest_pow2(4), Ok(4));
+    assert_eq!(round_up_to_nearest_pow2(5), Ok(8));
+    assert_eq!(round_up_to_nearest_pow2(6), Ok(8));
+    assert_eq!(round_up_to_nearest_pow2(7), Ok(8));
+    assert_eq!(round_up_to_nearest_pow2(8), Ok(8));
+    assert_eq!(round_up_to_nearest_pow2(9), Ok(16));
+    assert_eq!(round_up_to_nearest_pow2(9), Ok(16));
 }
 
 /// Vertical bar `|` represents the chunk that has a Header
@@ -152,6 +148,11 @@ pub struct FirstFitAllocator {
     first_header: RefCell<Option<Box<Header>>>,
 }
 
+#[global_allocator]
+pub static ALLOCATOR: FirstFitAllocator = FirstFitAllocator {
+    first_header: RefCell::new(None),
+};
+
 unsafe impl Sync for FirstFitAllocator {}
 
 unsafe impl GlobalAlloc for FirstFitAllocator {
@@ -194,7 +195,7 @@ impl FirstFitAllocator {
         }
     }
     fn add_free_from_descriptor(&self, desc: &EfiMemoryDescriptor) {
-        let mut start_addr = desc.physical_start as usize;
+        let mut start_addr = desc.physical_start() as usize;
         let mut size = desc.number_of_pages() as usize * 4096;
         // Make sure the allocator does not include the address 0 as a free
         // area.

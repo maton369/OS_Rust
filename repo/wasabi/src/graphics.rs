@@ -1,6 +1,7 @@
 use crate::result::Result;
 use core::cmp::min;
 use core::fmt;
+
 pub trait Bitmap {
     fn bytes_per_pixel(&self) -> i64;
     fn pixels_per_line(&self) -> i64;
@@ -39,7 +40,7 @@ unsafe fn unchecked_draw_point<T: Bitmap>(buf: &mut T, color: u32, x: i64, y: i6
     *buf.unchecked_pixel_at_mut(x, y) = color;
 }
 
-pub fn draw_point<T: Bitmap>(buf: &mut T, color: u32, x: i64, y: i64) -> Result<()> {
+fn draw_point<T: Bitmap>(buf: &mut T, color: u32, x: i64, y: i64) -> Result<()> {
     *(buf.pixel_at_mut(x, y).ok_or("Out of Range")?) = color;
     Ok(())
 }
@@ -69,7 +70,7 @@ pub fn fill_rect<T: Bitmap>(
     Ok(())
 }
 
-pub fn calc_slope_point(da: i64, db: i64, ia: i64) -> Option<i64> {
+fn calc_slope_point(da: i64, db: i64, ia: i64) -> Option<i64> {
     if da < db {
         None
     } else if da == 0 {
@@ -81,14 +82,7 @@ pub fn calc_slope_point(da: i64, db: i64, ia: i64) -> Option<i64> {
     }
 }
 
-pub fn draw_line<T: Bitmap>(
-    buf: &mut T,
-    color: u32,
-    x0: i64,
-    y0: i64,
-    x1: i64,
-    y1: i64,
-) -> Result<()> {
+fn draw_line<T: Bitmap>(buf: &mut T, color: u32, x0: i64, y0: i64, x1: i64, y1: i64) -> Result<()> {
     if !buf.is_in_x_range(x0)
         || !buf.is_in_x_range(x1)
         || !buf.is_in_y_range(y0)
@@ -112,40 +106,33 @@ pub fn draw_line<T: Bitmap>(
     Ok(())
 }
 
-pub fn lookup_font(c: char) -> Option<[[char; 8]; 16]> {
+fn lookup_font(c: char) -> Option<[[char; 8]; 16]> {
     const FONT_SOURCE: &str = include_str!("./font.txt");
-
     static mut FONT_CACHE: Option<[[[char; 8]; 16]; 256]> = None;
-
     if let Ok(c) = u8::try_from(c) {
-        unsafe {
-            if FONT_CACHE.is_none() {
-                let mut font = [[[' '; 8]; 16]; 256];
-                let mut lines = FONT_SOURCE.lines();
-
-                while let Some(line) = lines.next() {
-                    if let Some(hex) = line.strip_prefix("0x") {
-                        if let Ok(idx) = u8::from_str_radix(hex, 16) {
-                            let mut glyph = [[' '; 8]; 16];
-
-                            for y in 0..16 {
-                                if let Some(row) = lines.next() {
-                                    for (x, ch) in row.chars().take(8).enumerate() {
-                                        glyph[y][x] = ch;
+        let font = unsafe {
+            FONT_CACHE.get_or_insert_with(|| {
+                let mut font = [[['*'; 8]; 16]; 256];
+                let mut fi = FONT_SOURCE.split('\n');
+                while let Some(line) = fi.next() {
+                    if let Some(line) = line.strip_prefix("0x") {
+                        if let Ok(idx) = u8::from_str_radix(line, 16) {
+                            let mut glyph = [['*'; 8]; 16];
+                            for (y, line) in fi.clone().take(16).enumerate() {
+                                for (x, c) in line.chars().enumerate() {
+                                    if let Some(e) = glyph[y].get_mut(x) {
+                                        *e = c;
                                     }
                                 }
                             }
-
                             font[idx as usize] = glyph;
                         }
                     }
                 }
-
-                FONT_CACHE = Some(font);
-            }
-
-            FONT_CACHE.as_ref().map(|f| f[c as usize])
-        }
+                font
+            })
+        };
+        Some(font[c as usize])
     } else {
         None
     }

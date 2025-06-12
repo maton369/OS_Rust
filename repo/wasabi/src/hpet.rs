@@ -79,11 +79,10 @@ impl Hpet {
         self.freq
     }
 }
-
 static HPET: Mutex<Option<Hpet>> = Mutex::new(None);
 pub fn set_global_hpet(hpet: Hpet) {
-    let mut lock = HPET.lock();
-    *lock = Some(hpet);
+    assert!(HPET.lock().is_none());
+    *HPET.lock() = Some(hpet);
 }
 pub fn global_timestamp() -> Duration {
     if let Some(hpet) = &*HPET.lock() {

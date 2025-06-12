@@ -4,11 +4,12 @@ use crate::acpi::AcpiRsdpStruct;
 use crate::allocator::ALLOCATOR;
 use crate::graphics::draw_test_pattern;
 use crate::graphics::fill_rect;
+use crate::graphics::Bitmap;
 use crate::hpet::set_global_hpet;
 use crate::hpet::Hpet;
 use crate::info;
 use crate::pci::Pci;
-use crate::uefi::exit_boot_services;
+use crate::uefi::exit_from_efi_boot_services;
 use crate::uefi::EfiHandle;
 use crate::uefi::EfiMemoryType;
 use crate::uefi::EfiMemoryType::*;
@@ -27,9 +28,35 @@ pub fn init_basic_runtime(
     efi_system_table: &EfiSystemTable,
 ) -> MemoryMapHolder {
     let mut memory_map = MemoryMapHolder::new();
-    exit_boot_services(image_handle, efi_system_table, &mut memory_map);
+    exit_from_efi_boot_services(image_handle, efi_system_table, &mut memory_map);
     ALLOCATOR.init_with_mmap(&memory_map);
     memory_map
+}
+
+pub fn init_paging(memory_map: &MemoryMapHolder) {
+    let mut table = PML4::new();
+    let mut end_of_mem = 0x1_0000_0000u64;
+    for e in memory_map.iter() {
+        match e.memory_type() {
+            CONVENTIONAL_MEMORY | LOADER_CODE | LOADER_DATA => {
+                end_of_mem = max(
+                    end_of_mem,
+                    e.physical_start() + e.number_of_pages() * (PAGE_SIZE as u64),
+                );
+            }
+            _ => (),
+        }
+    }
+    table
+        .create_mapping(0, end_of_mem, 0, PageAttr::ReadWriteKernel)
+        .expect("Failed to create initial page mapping");
+    // Unmap page 0 to detect null ptr dereference
+    table
+        .create_mapping(0, 4096, 0, PageAttr::NotPresent)
+        .expect("Failed to unmap page 0");
+    unsafe {
+        write_cr3(Box::into_raw(table));
+    }
 }
 
 pub fn init_hpet(acpi: &AcpiRsdpStruct) {
@@ -56,8 +83,8 @@ pub fn init_allocator(memory_map: &MemoryMapHolder) {
 }
 
 pub fn init_display(vram: &mut VramBufferInfo) {
-    let vw = vram.width;
-    let vh = vram.height;
+    let vw = vram.width();
+    let vh = vram.height();
     fill_rect(vram, 0x000000, 0, 0, vw, vh).expect("fill_rect failed");
     draw_test_pattern(vram);
 }
@@ -71,33 +98,5 @@ pub fn init_pci(acpi: &AcpiRsdpStruct) {
         }
         let pci = Pci::new(mcfg);
         pci.probe_devices();
-    }
-}
-
-pub fn init_paging(memory_map: &MemoryMapHolder) {
-    let mut table = PML4::new();
-    let mut end_of_mem = 0x1_0000_0000u64;
-    for e in memory_map.iter() {
-        match e.memory_type() {
-            CONVENTIONAL_MEMORY | LOADER_CODE | LOADER_DATA => {
-                end_of_mem = max(
-                    end_of_mem,
-                    e.physical_start + e.number_of_pages() * (PAGE_SIZE as u64),
-                );
-            }
-            _ => (),
-        }
-    }
-    table
-        .create_mapping(0, end_of_mem, 0, PageAttr::ReadWriteKernel)
-        .expect("Failed to create initial page mapping");
-    table
-        .create_mapping(0, 4096, 0, PageAttr::NotPresent)
-        .expect("Failed to create mapping for page 0");
-    table
-        .create_mapping(4096, PAGE_SIZE as u64, 0, PageAttr::ReadWriteKernel)
-        .expect("Failed to unmap page 0");
-    unsafe {
-        write_cr3(Box::into_raw(table));
     }
 }

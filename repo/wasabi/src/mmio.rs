@@ -1,4 +1,5 @@
 extern crate alloc;
+
 use crate::x86::disable_cache;
 use alloc::boxed::Box;
 use core::marker::PhantomPinned;
@@ -9,7 +10,6 @@ use core::pin::Pin;
 pub struct Mmio<T: Sized> {
     inner: ManuallyDrop<Pin<Box<T>>>,
 }
-
 impl<T: Sized> Mmio<T> {
     /// # Safety
     /// Caller must ensure:
@@ -21,14 +21,12 @@ impl<T: Sized> Mmio<T> {
             inner: ManuallyDrop::new(Box::into_pin(Box::from_raw(ptr))),
         }
     }
-
     /// # Safety
     /// Same rules as Pin::get_unchecked_mut() applies.
     pub unsafe fn get_unchecked_mut(&mut self) -> &mut T {
         self.inner.as_mut().get_unchecked_mut()
     }
 }
-
 impl<T> AsRef<T> for Mmio<T> {
     fn as_ref(&self) -> &T {
         self.inner.as_ref().get_ref()
@@ -48,6 +46,7 @@ impl<T: Sized> IoBoxInner<T> {
         }
     }
 }
+
 pub struct IoBox<T: Sized> {
     inner: Pin<Box<IoBoxInner<T>>>,
 }
@@ -60,6 +59,8 @@ impl<T: Sized> IoBox<T> {
         disable_cache(&this);
         this
     }
+    /// # Safety
+    /// Same rules as Pin::get_unchecked_mut() applies.
     pub unsafe fn get_unchecked_mut(&mut self) -> &mut T {
         &mut self.inner.as_mut().get_unchecked_mut().data
     }
@@ -74,6 +75,7 @@ impl<T: Sized> Default for IoBox<T> {
         Self::new()
     }
 }
+
 #[test_case]
 fn io_box_new() {
     IoBox::<u64>::new();

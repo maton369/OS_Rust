@@ -85,14 +85,14 @@ impl Executor {
         }
         self.task_queue.as_mut().unwrap()
     }
-    pub fn enqueue(&mut self, task: Task<()>) {
+    fn enqueue(&mut self, task: Task<()>) {
         self.task_queue().push_back(task)
     }
-    fn run(mut executor: Self) -> ! {
+    fn run(executor: &Mutex<Option<Self>>) -> ! {
         info!("Executor starts running...");
         loop {
-            let task = executor.task_queue().pop_front();
-            if let Some(mut task) = task {
+            let task = executor.lock().as_mut().map(|e| e.task_queue().pop_front());
+            if let Some(Some(mut task)) = task {
                 let waker = no_op_waker();
                 let mut context = Context::from_waker(&waker);
                 match task.poll(&mut context) {
@@ -100,7 +100,9 @@ impl Executor {
                         info!("Task completed: {:?}: {:?}", task, result);
                     }
                     Poll::Pending => {
-                        executor.task_queue().push_back(task);
+                        if let Some(e) = executor.lock().as_mut() {
+                            e.task_queue().push_back(task)
+                        }
                     }
                 }
             }
@@ -131,7 +133,7 @@ pub async fn yield_execution() {
     Yield::default().await
 }
 
-pub struct TimeoutFuture {
+struct TimeoutFuture {
     time_out: Duration,
 }
 impl TimeoutFuture {
@@ -151,7 +153,6 @@ impl Future for TimeoutFuture {
         }
     }
 }
-
 pub async fn sleep(duration: Duration) {
     TimeoutFuture::new(duration).await
 }
@@ -164,5 +165,5 @@ pub fn spawn_global(future: impl Future<Output = Result<()>> + 'static) {
 }
 pub fn start_global_executor() -> ! {
     info!("Starting global executor loop");
-    Executor::run(GLOBAL_EXECUTOR.lock().take().unwrap());
+    Executor::run(&GLOBAL_EXECUTOR);
 }
