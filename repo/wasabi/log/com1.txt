@@ -12,8 +12,8 @@ Booting WasabiOS...
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2119262208, virtual_start: 0, number_of_pages: 1, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 2145386496, virtual_start: 0, number_of_pages: 154, attribute: 15 }
 [INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 4294967296, virtual_start: 0, number_of_pages: 262144, attribute: 15 }
-[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 5369331712, virtual_start: 0, number_of_pages: 261992, attribute: 15 }
-[INFO]  src/init.rs:55 : Total: 1037674 pages = 4053 MiB
+[INFO]  src/init.rs:52 : EfiMemoryDescriptor { memory_type: CONVENTIONAL_MEMORY, physical_start: 5369376768, virtual_start: 0, number_of_pages: 261981, attribute: 15 }
+[INFO]  src/init.rs:55 : Total: 1037663 pages = 4053 MiB
 [INFO]  src/x86.rs:858: TSS64 created @ 0x17FF7FE80
 [INFO]  src/x86.rs:927: Loading GDT @ 0x000000017FF7FE20
 [INFO]  src/x86.rs:933: Loading TSS (selector = 0x18)
@@ -25,11 +25,11 @@ Booting WasabiOS...
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x10D3)
 [INFO]  src/pci.rs:186: (vendor: 0x1B36, device: 0x000D)
 [INFO]  src/xhci.rs:218: Xhci found at: /pci/bus/0x00/device/0x03/function/0x0)
-[INFO]  src/xhci.rs:329: xhci: page_size = 4096
-[INFO]  src/xhci.rs:331: xhci: original num_scratchpad_bufs = 0
-[INFO]  src/xhci.rs:749: xhci: CommandRing constructed
-[INFO]  src/xhci.rs:426: Starting xHC...
-[INFO]  src/xhci.rs:428: xHC started running!
+[INFO]  src/xhci.rs:370: xhci: page_size = 4096
+[INFO]  src/xhci.rs:372: xhci: original num_scratchpad_bufs = 0
+[INFO]  src/xhci.rs:910: xhci: CommandRing constructed
+[INFO]  src/xhci.rs:558: Starting xHC...
+[INFO]  src/xhci.rs:560: xHC started running!
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2918)
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2922)
 [INFO]  src/pci.rs:186: (vendor: 0x8086, device: 0x2930)
@@ -38,7 +38,7 @@ Booting WasabiOS...
 [INFO]  src/executor.rs:92 : Executor starts running...
 [INFO]  src/xhci.rs:232: xhci: cap_regs.MaxSlots = 64
 [INFO]  src/xhci.rs:239: xhci: op_regs.USBSTS = 0
-[INFO]  src/xhci.rs:243: xhci: rt_regs.MFINDEX = 1141
+[INFO]  src/xhci.rs:243: xhci: rt_regs.MFINDEX = 1308
 [INFO]  src/xhci.rs:247: PORTSC values for port 1..9
 [INFO]  src/xhci.rs:255:     1: 0x000202A0 (CCS: false)
 [INFO]  src/xhci.rs:255:     2: 0x000202A0 (CCS: false)
@@ -49,19 +49,24 @@ Booting WasabiOS...
 [INFO]  src/xhci.rs:255:     7: 0x000202A0 (CCS: false)
 [INFO]  src/xhci.rs:255:     8: 0x000202A0 (CCS: false)
 [INFO]  src/xhci.rs:263: xhci: port 5 is connected
-[INFO]  src/xhci.rs:273: xhci: resetting port 5
-[INFO]  src/xhci.rs:275: xhci: port 5 has been reset
-[INFO]  src/xhci.rs:280: xhci: port 5 is enabled
-[INFO]  src/xhci.rs:265: slot 1 is assingned for port 5
-[INFO]  src/executor.rs:100: Task completed: Task(src/xhci.rs:226): Ok(())
-[INFO]  src/main.rs:77 : 100 hpet.main_counter = 66.879ms
-[INFO]  src/main.rs:84 : 200 hpet.main_counter = 71.762ms
+[INFO]  src/xhci.rs:280: xhci: resetting port 5
+[INFO]  src/xhci.rs:282: xhci: port 5 has been reset
+[INFO]  src/xhci.rs:287: xhci: port 5 is enabled
+[INFO]  src/xhci.rs:265: slot 1 is assigned for port 5
+[INFO]  src/xhci.rs:293: AddressDeviceCommand: start
+[INFO]  src/xhci.rs:910: xhci: CommandRing constructed
+[INFO]  src/xhci.rs:315: AddressDeviceCommand: command pushed
+[INFO]  src/xhci.rs:579: xhci: pushing command TRB...
+[INFO]  src/xhci.rs:582: xhci: notifying xHC...
+[INFO]  src/xhci.rs:585: xhci: waiting for TRB completion...
+[INFO]  src/main.rs:77 : 100 hpet.main_counter = 87.795ms
+[INFO]  src/main.rs:84 : 200 hpet.main_counter = 93.37ms
 [INFO]  src/main.rs:96 : Started to monitor serial port
-[INFO]  src/main.rs:77 : 101 hpet.main_counter = 1.071305s
-[INFO]  src/main.rs:77 : 102 hpet.main_counter = 2.074469s
-[INFO]  src/main.rs:84 : 201 hpet.main_counter = 2.080865s
-[INFO]  src/main.rs:77 : 103 hpet.main_counter = 3.08068s
-[INFO]  src/main.rs:84 : 202 hpet.main_counter = 4.084457s
+[INFO]  src/main.rs:77 : 101 hpet.main_counter = 1.092841s
+[INFO]  src/main.rs:77 : 102 hpet.main_counter = 2.095982s
+[INFO]  src/main.rs:84 : 201 hpet.main_counter = 2.099543s
+[INFO]  src/main.rs:77 : 103 hpet.main_counter = 3.099572s
 [INFO]  src/executor.rs:100: Task completed: Task(src/main.rs:108): Ok(())
-[INFO]  src/main.rs:84 : 203 hpet.main_counter = 6.087384s
+[INFO]  src/main.rs:84 : 202 hpet.main_counter = 4.107732s
+[INFO]  src/main.rs:84 : 203 hpet.main_counter = 6.110911s
 [INFO]  src/executor.rs:100: Task completed: Task(src/main.rs:109): Ok(())
